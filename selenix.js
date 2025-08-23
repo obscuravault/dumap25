@@ -3,7 +3,7 @@
   'use strict';
 
   const GOOGLE_SHEETS_API_KEY = "AIzaSyDzdiDMtiY250DS-lDuZeIZOocw9oqMlhM";
-  const SPREADSHEET_ID = "1BqidQQTNj5NF4dAMX-0SrVlIcJbRKMMLow5CAFyH7pg";
+  const SPREADSHEET_ID = "1v6XVoYKJEQ7knVMRaZouSRrVDg46OjxYW4HuPITi5u0";
   const TAB_NAME = "Lessons";
   const LOGO_URL = ""; // optional: your logo URL
 
@@ -179,4 +179,5 @@
     initHeader, fetchSheet, normalizeYouTube, groupByLesson,
     uniqueSubjects, subjectColorMap, slugify, makeSubjectDot, formatCount
   };
+
 })();
