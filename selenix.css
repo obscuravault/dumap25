@@ -243,4 +243,50 @@ body{
   min-height: clamp(480px, 58vh, 780px);
   background-size: 150% auto;   /* zoom 20% */
   background-position: right center;
+
+}
+
+/* Security Lock Styles */
+.lock {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0,0,0,0.85);
+  z-index: 999999;
+  padding: 2rem;
+  transition: opacity 0.15s ease;
+}
+.lock.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.lock-card {
+  background: #101620;
+  border: 1px solid #243244;
+  border-radius: 18px;
+  padding: 26px;
+  width: min(520px, 90vw);
+  text-align: center;
+  color: #e6ebf2;
+}
+.lock-card h2 {
+  margin: 0 0 .4rem;
+  color: #ff4d4d;
+  font-size: 1.4rem;
+}
+.lock-card small {
+  opacity: .8;
+}
+.lock-card .btn {
+  display: inline-block;
+  padding: .6rem 1rem;
+  border-radius: 12px;
+  border: 1px solid #2a3a4f;
+  background: #162030;
+  color: #e6ebf2;
+  text-decoration: none;
+  font-weight: 600;
+  margin-top: .85rem;
+  cursor: pointer;
 }
