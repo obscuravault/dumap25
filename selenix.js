@@ -253,18 +253,13 @@
   }
   setInterval(runChecks, CHECK_INTERVAL_MS);
 
- // if (ENFORCE_ON_LOAD) {
- //   showLock("Pre-auth lock");
- //   setTimeout(()=>{ if (!devtoolsSizeHeuristic()) hideLock(); },300);
- // }
-
-  if (!ENFORCE_ON_LOAD) {
-  // start checks but don't lock immediately
-  runChecks();
-}
-
+  if (ENFORCE_ON_LOAD) {
+    showLock("Pre-auth lock");
+    setTimeout(()=>{ if (!devtoolsSizeHeuristic()) hideLock(); },300);
+  }
 
 })();
+
 
 
 
