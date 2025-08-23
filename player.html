@@ -528,19 +528,30 @@
       renderPlayer();
 
       // Wait YouTube API then init
-      function startIfReady(){
-        if (window.YT && window.YT.Player){
-          const vid = extractYouTubeID(state.current?.youtube);
-          if (!vid) {
-            document.getElementById('playerTitle').textContent = 'Video is Not Uploaded. Please Wait until Upload is being Completed.';
-            return;
-          }
-          initYT(vid);
+     function startIfReady(){
+    if (window.YT && window.YT.Player){
+        let vid = extractYouTubeID(state.current?.youtube);
+        const playerTitle = document.getElementById('playerTitle');
+
+        if (!vid) {
+            // Set default video ID
+            vid = 'dQw4w9WgXcQ'; // Replace with your default video ID
+
+            // Show message to user
+            playerTitle.textContent = 'Original video is not uploaded yet. Showing default video.';
+            console.warn('No video found. Loading default video.');
         } else {
-          setTimeout(startIfReady, 80);
+            // Show the actual video title if available
+            playerTitle.textContent = `${state.current.lesson} — ${state.current.partTitle}`;
         }
-      }
-      startIfReady();
+
+        initYT(vid);
+
+    } else {
+        setTimeout(startIfReady, 80);
+    }
+}
+startIfReady();
 
     } catch (e){
       console.error(e);
@@ -556,6 +567,7 @@
   </script>
 </body>
 </html>
+
 
 
 
