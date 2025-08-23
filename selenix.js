@@ -185,7 +185,7 @@
 (function() {
   "use strict";
 
-  const ENFORCE_ON_LOAD = true; // Lock content immediately on load
+  const ENFORCE_ON_LOAD = false; // Lock content immediately on load
   const DEVTOOLS_WIDTH_THRESHOLD = 160;
   const DEBUGGER_TIME_THRESHOLD = 150;
   const CHECK_INTERVAL_MS = 600;
@@ -253,12 +253,19 @@
   }
   setInterval(runChecks, CHECK_INTERVAL_MS);
 
-  if (ENFORCE_ON_LOAD) {
-    showLock("Pre-auth lock");
-    setTimeout(()=>{ if (!devtoolsSizeHeuristic()) hideLock(); },300);
-  }
+ // if (ENFORCE_ON_LOAD) {
+ //   showLock("Pre-auth lock");
+ //   setTimeout(()=>{ if (!devtoolsSizeHeuristic()) hideLock(); },300);
+ // }
+
+  if (!ENFORCE_ON_LOAD) {
+  // start checks but don't lock immediately
+  runChecks();
+}
+
 
 })();
+
 
 
 
