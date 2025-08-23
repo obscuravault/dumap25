@@ -6,85 +6,6 @@
   const SPREADSHEET_ID = "1v6XVoYKJEQ7knVMRaZouSRrVDg46OjxYW4HuPITi5u0";
   const TAB_NAME = "Lessons";
   const LOGO_URL = ""; // optional: your logo URL
-
-(function() {
-  "use strict";
-
-  const ENFORCE_ON_LOAD = true; // Lock content immediately on load
-  const DEVTOOLS_WIDTH_THRESHOLD = 160;
-  const DEBUGGER_TIME_THRESHOLD = 150;
-  const CHECK_INTERVAL_MS = 600;
-
-  const lockEl = document.getElementById("lock");
-  const reasonEl = document.getElementById("reason");
-  const reloadBtn = document.getElementById("reloadBtn");
-  let locked = false, tripped = false;
-
-  function setReason(text) {
-    if (reasonEl) reasonEl.textContent = "Reason: " + text;
-  }
-  function showLock(reason) {
-    if (locked) return;
-    locked = true;
-    setReason(reason || "Policy violation");
-    lockEl.classList.remove("hidden");
-    // Optional: blur the page when locked
-    document.body.style.filter = "blur(20px)";
-  }
-  function hideLock() {
-    if (tripped) return;
-    locked = false;
-    lockEl.classList.add("hidden");
-    document.body.style.filter = "none";
-  }
-
-  reloadBtn.addEventListener("click", () => location.reload());
-
-  // Prevent context menu, copy, etc.
-  const deny = e => { e.preventDefault(); e.stopPropagation(); return false; };
-  ["contextmenu","selectstart","copy","cut","paste","dragstart","drop"].forEach(ev=>{
-    window.addEventListener(ev, deny, true);
-  });
-
-  // Keyboard restrictions (F12, Ctrl+Shift+I/J/C, Ctrl+U/S)
-  window.addEventListener("keydown", (e)=>{
-    const k = e.key?.toLowerCase();
-    const ctrl = e.ctrlKey || e.metaKey, sh = e.shiftKey;
-    if (
-      e.key === "F12" ||
-      (ctrl && sh && (k==="i"||k==="j"||k==="c")) ||
-      (ctrl && (k==="u"||k==="s"))
-    ) {
-      deny(e);
-      tripped = true;
-      showLock("Restricted keyboard shortcut");
-    }
-  }, true);
-
-  // DevTools detection
-  function devtoolsSizeHeuristic() {
-    const dW = Math.abs(window.outerWidth - window.innerWidth);
-    const dH = Math.abs(window.outerHeight - window.innerHeight);
-    return (dW > DEVTOOLS_WIDTH_THRESHOLD || dH > DEVTOOLS_WIDTH_THRESHOLD);
-  }
-  function debuggerStallHeuristic() {
-    const t0 = performance.now();
-    try { new Function("debugger")(); } catch(e){}
-    return (performance.now() - t0) > DEBUGGER_TIME_THRESHOLD;
-  }
-  function runChecks() {
-    if (devtoolsSizeHeuristic()) { tripped=true; showLock("DevTools window detected"); return; }
-    if (debuggerStallHeuristic()) { tripped=true; showLock("Debugger stall detected"); return; }
-  }
-  setInterval(runChecks, CHECK_INTERVAL_MS);
-
-  if (ENFORCE_ON_LOAD) {
-    showLock("Pre-auth lock");
-    setTimeout(()=>{ if (!devtoolsSizeHeuristic()) hideLock(); },300);
-  }
-
-})();
-
   
   /* ---------- NAV / SEARCH OVERLAY / MOBILE ---------- */
   function initHeader(){
@@ -260,5 +181,85 @@
   };
 
 })();
+
+(function() {
+  "use strict";
+
+  const ENFORCE_ON_LOAD = true; // Lock content immediately on load
+  const DEVTOOLS_WIDTH_THRESHOLD = 160;
+  const DEBUGGER_TIME_THRESHOLD = 150;
+  const CHECK_INTERVAL_MS = 600;
+
+  const lockEl = document.getElementById("lock");
+  const reasonEl = document.getElementById("reason");
+  const reloadBtn = document.getElementById("reloadBtn");
+  let locked = false, tripped = false;
+
+  function setReason(text) {
+    if (reasonEl) reasonEl.textContent = "Reason: " + text;
+  }
+  function showLock(reason) {
+    if (locked) return;
+    locked = true;
+    setReason(reason || "Policy violation");
+    lockEl.classList.remove("hidden");
+    // Optional: blur the page when locked
+    document.body.style.filter = "blur(20px)";
+  }
+  function hideLock() {
+    if (tripped) return;
+    locked = false;
+    lockEl.classList.add("hidden");
+    document.body.style.filter = "none";
+  }
+
+  reloadBtn.addEventListener("click", () => location.reload());
+
+  // Prevent context menu, copy, etc.
+  const deny = e => { e.preventDefault(); e.stopPropagation(); return false; };
+  ["contextmenu","selectstart","copy","cut","paste","dragstart","drop"].forEach(ev=>{
+    window.addEventListener(ev, deny, true);
+  });
+
+  // Keyboard restrictions (F12, Ctrl+Shift+I/J/C, Ctrl+U/S)
+  window.addEventListener("keydown", (e)=>{
+    const k = e.key?.toLowerCase();
+    const ctrl = e.ctrlKey || e.metaKey, sh = e.shiftKey;
+    if (
+      e.key === "F12" ||
+      (ctrl && sh && (k==="i"||k==="j"||k==="c")) ||
+      (ctrl && (k==="u"||k==="s"))
+    ) {
+      deny(e);
+      tripped = true;
+      showLock("Restricted keyboard shortcut");
+    }
+  }, true);
+
+  // DevTools detection
+  function devtoolsSizeHeuristic() {
+    const dW = Math.abs(window.outerWidth - window.innerWidth);
+    const dH = Math.abs(window.outerHeight - window.innerHeight);
+    return (dW > DEVTOOLS_WIDTH_THRESHOLD || dH > DEVTOOLS_WIDTH_THRESHOLD);
+  }
+  function debuggerStallHeuristic() {
+    const t0 = performance.now();
+    try { new Function("debugger")(); } catch(e){}
+    return (performance.now() - t0) > DEBUGGER_TIME_THRESHOLD;
+  }
+  function runChecks() {
+    if (devtoolsSizeHeuristic()) { tripped=true; showLock("DevTools window detected"); return; }
+    if (debuggerStallHeuristic()) { tripped=true; showLock("Debugger stall detected"); return; }
+  }
+  setInterval(runChecks, CHECK_INTERVAL_MS);
+
+  if (ENFORCE_ON_LOAD) {
+    showLock("Pre-auth lock");
+    setTimeout(()=>{ if (!devtoolsSizeHeuristic()) hideLock(); },300);
+  }
+
+})();
+
+
 
 
