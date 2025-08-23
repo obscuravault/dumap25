@@ -532,7 +532,7 @@
         if (window.YT && window.YT.Player){
           const vid = extractYouTubeID(state.current?.youtube);
           if (!vid) {
-            document.getElementById('playerTitle').textContent = 'Video ID not found.';
+            document.getElementById('playerTitle').textContent = 'Video is Not Uploaded. Please Wait until Upload is being Completed.';
             return;
           }
           initYT(vid);
@@ -556,6 +556,7 @@
   </script>
 </body>
 </html>
+
 
 
 
