@@ -7,171 +7,83 @@
   const TAB_NAME = "Lessons";
   const LOGO_URL = ""; // optional: your logo URL
 
-function(){
-      "use strict";
+(function() {
+  "use strict";
 
-      // --- Config knobs (adjust for your threat model) ---
-      const ENFORCE_ON_LOAD = true;           // show lock immediately until checks pass
-      const DEVTOOLS_WIDTH_THRESHOLD = 160;   // px delta heuristic
-      const DEBUGGER_TIME_THRESHOLD = 150;    // ms stall considered suspicious
-      const CHECK_INTERVAL_MS = 600;          // periodic check
-      const HARD_FAIL_ON_ANY_VIOLATION = true;// lock permanently on first hit
+  const ENFORCE_ON_LOAD = true; // Lock content immediately on load
+  const DEVTOOLS_WIDTH_THRESHOLD = 160;
+  const DEBUGGER_TIME_THRESHOLD = 150;
+  const CHECK_INTERVAL_MS = 600;
 
-      // --- Utilities ---
-      const $ = sel => document.querySelector(sel);
-      const lockEl = $("#lock");
-      const reasonEl = $("#reason");
-      const reloadBtn = $("#reloadBtn");
-      let locked = false;
-      let tripped = false;
+  const lockEl = document.getElementById("lock");
+  const reasonEl = document.getElementById("reason");
+  const reloadBtn = document.getElementById("reloadBtn");
+  let locked = false, tripped = false;
 
-      function setReason(text){
-        try { reasonEl.textContent = "Reason: " + text; } catch(e){}
-      }
-      function showLock(reason){
-        if (locked) return;
-        locked = true;
-        setReason(reason || "Policy violation");
-        lockEl.classList.remove("hidden");
-        // Nuke visible content text nodes to reduce quick copy (still bypassable)
-        try {
-          const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-          const nodes=[];
-          while(walker.nextNode()) nodes.push(walker.currentNode);
-          nodes.forEach(n => { if (!lockEl.contains(n)) n.textContent = ""; });
-        } catch(e){}
-      }
-      function hideLock(){
-        if (tripped) return; // once tripped, don't auto-unlock
-        locked = false;
-        lockEl.classList.add("hidden");
-      }
+  function setReason(text) {
+    if (reasonEl) reasonEl.textContent = "Reason: " + text;
+  }
+  function showLock(reason) {
+    if (locked) return;
+    locked = true;
+    setReason(reason || "Policy violation");
+    lockEl.classList.remove("hidden");
+    // Optional: blur the page when locked
+    document.body.style.filter = "blur(20px)";
+  }
+  function hideLock() {
+    if (tripped) return;
+    locked = false;
+    lockEl.classList.add("hidden");
+    document.body.style.filter = "none";
+  }
 
-      reloadBtn.addEventListener("click", ()=>location.reload());
+  reloadBtn.addEventListener("click", () => location.reload());
 
-      // --- Hardening: block common UI interactions ---
-      const deny = e => { e.preventDefault(); e.stopPropagation(); return false; };
+  // Prevent context menu, copy, etc.
+  const deny = e => { e.preventDefault(); e.stopPropagation(); return false; };
+  ["contextmenu","selectstart","copy","cut","paste","dragstart","drop"].forEach(ev=>{
+    window.addEventListener(ev, deny, true);
+  });
 
-      // Right click, selection, copy/cut/paste, drag, context menu
-      ["contextmenu","selectstart","copy","cut","paste","dragstart","drop"].forEach(ev=>{
-        window.addEventListener(ev, deny, true);
-      });
+  // Keyboard restrictions (F12, Ctrl+Shift+I/J/C, Ctrl+U/S)
+  window.addEventListener("keydown", (e)=>{
+    const k = e.key?.toLowerCase();
+    const ctrl = e.ctrlKey || e.metaKey, sh = e.shiftKey;
+    if (
+      e.key === "F12" ||
+      (ctrl && sh && (k==="i"||k==="j"||k==="c")) ||
+      (ctrl && (k==="u"||k==="s"))
+    ) {
+      deny(e);
+      tripped = true;
+      showLock("Restricted keyboard shortcut");
+    }
+  }, true);
 
-      // Keyboard shortcuts: F12, Ctrl/Cmd+Shift+I/J/C, Ctrl/Cmd+U, Ctrl/Cmd+S, PrintScreen, etc.
-      window.addEventListener("keydown", (e)=>{
-        const k = e.key?.toLowerCase();
-        const ctrl = e.ctrlKey || e.metaKey;
-        const sh = e.shiftKey;
+  // DevTools detection
+  function devtoolsSizeHeuristic() {
+    const dW = Math.abs(window.outerWidth - window.innerWidth);
+    const dH = Math.abs(window.outerHeight - window.innerHeight);
+    return (dW > DEVTOOLS_WIDTH_THRESHOLD || dH > DEVTOOLS_WIDTH_THRESHOLD);
+  }
+  function debuggerStallHeuristic() {
+    const t0 = performance.now();
+    try { new Function("debugger")(); } catch(e){}
+    return (performance.now() - t0) > DEBUGGER_TIME_THRESHOLD;
+  }
+  function runChecks() {
+    if (devtoolsSizeHeuristic()) { tripped=true; showLock("DevTools window detected"); return; }
+    if (debuggerStallHeuristic()) { tripped=true; showLock("Debugger stall detected"); return; }
+  }
+  setInterval(runChecks, CHECK_INTERVAL_MS);
 
-        const blocked =
-          e.key === "F12" ||
-          (ctrl && sh && (k === "i" || k === "j" || k === "c")) ||
-          (ctrl && (k === "u" || k === "s" || k === "p")) ||
-          // Prevent opening source in some browsers via Ctrl+O
-          (ctrl && k === "o");
+  if (ENFORCE_ON_LOAD) {
+    showLock("Pre-auth lock");
+    setTimeout(()=>{ if (!devtoolsSizeHeuristic()) hideLock(); },300);
+  }
 
-        if (blocked) {
-          deny(e);
-          tripped = true;
-          if (HARD_FAIL_ON_ANY_VIOLATION) showLock("Restricted keyboard shortcut");
-        }
-      }, true);
-
-      // Prevent printing (mild friction)
-      window.matchMedia && window.matchMedia('print').addListener(() => {
-        tripped = true;
-        if (HARD_FAIL_ON_ANY_VIOLATION) showLock("Print attempt");
-      });
-
-      // --- DevTools detection (multi-pronged heuristics) ---
-      function devtoolsSizeHeuristic(){
-        const dW = Math.abs((window.outerWidth || 0) - (window.innerWidth || 0));
-        const dH = Math.abs((window.outerHeight || 0) - (window.innerHeight || 0));
-        return (dW > DEVTOOLS_WIDTH_THRESHOLD) || (dH > DEVTOOLS_WIDTH_THRESHOLD);
-      }
-
-      function debuggerStallHeuristic(){
-        const t0 = performance.now();
-        // Try to cause a stall if devtools is pausing on debugger statements
-        // eslint-disable-next-line no-new-func
-        try { new Function("debugger")(); } catch(e){}
-        const dt = performance.now() - t0;
-        return dt > DEBUGGER_TIME_THRESHOLD;
-      }
-
-      // Detect console probing (toString side effect trick)
-      function consoleProbingHeuristic(){
-        let detected = false;
-        const bait = { toString: function(){ detected = true; return "0"; } };
-        try { console.log(bait); } catch(e){}
-        return detected && (typeof window.console === "object");
-      }
-
-      // Freeze page if DevTools panel is opened (heuristic combo)
-      function runChecks(){
-        if (devtoolsSizeHeuristic()) {
-          tripped = true;
-          if (HARD_FAIL_ON_ANY_VIOLATION) showLock("DevTools window detected (size)");
-          return true;
-        }
-        if (debuggerStallHeuristic()) {
-          tripped = true;
-          if (HARD_FAIL_ON_ANY_VIOLATION) showLock("Debugger stall detected");
-          return true;
-        }
-        if (consoleProbingHeuristic()) {
-          tripped = true;
-          if (HARD_FAIL_ON_ANY_VIOLATION) showLock("Console probing detected");
-          return true;
-        }
-        return false;
-      }
-
-      // Extra: disable console methods (minor friction; easily bypassed)
-      (function disableConsole(){
-        const noop = ()=>{};
-        ["log","warn","info","error","table","trace","dir","group","groupCollapsed","groupEnd"].forEach(m=>{
-          try { console[m] = noop; } catch(e){}
-        });
-        try { Object.freeze(console); } catch(e){}
-      })();
-
-      // Periodic enforcement
-      setInterval(runChecks, CHECK_INTERVAL_MS);
-
-      // On visibility changes, re-check
-      document.addEventListener("visibilitychange", ()=>{
-        if (!document.hidden) runChecks();
-      });
-
-      // Initial state
-      if (ENFORCE_ON_LOAD) {
-        showLock("Pre-auth lock");
-        // Briefly delay then unlock if clean
-        setTimeout(()=>{
-          if (!runChecks()) hideLock();
-        }, 300);
-      } else {
-        runChecks();
-      }
-
-      // Anti-embed / clickjacking basic guard (also set frame-ancestors in CSP server-side)
-      if (window.top !== window.self) {
-        tripped = true;
-        showLock("Embedded in a frame");
-        try { window.top.location = window.location.href; } catch(e){}
-      }
-
-      // Minimal tamper detection (checksum of inline script text)
-      try {
-        const thisScript = document.currentScript?.textContent || "";
-        let hash = 0;
-        for (let i=0; i<thisScript.length; i++) hash = (hash*31 + thisScript.charCodeAt(i)) >>> 0;
-        // Store a reference hash you expect (update if you edit this script)
-        const EXPECTED = hash; // set to computed value after first deploy
-        // Example: if (hash !== EXPECTED) showLock("Script integrity check failed");
-      } catch(e){}
-    })();
+})();
 
   
   /* ---------- NAV / SEARCH OVERLAY / MOBILE ---------- */
@@ -348,4 +260,5 @@ function(){
   };
 
 })();
+
 
