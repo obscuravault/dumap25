@@ -22,29 +22,35 @@
       -webkit-user-select: none;
     }
     /* Watermark */
-    .ov-watermark {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      display: grid;
-      place-items: center;
-      opacity: .18;
-      mix-blend-mode: lighten;
-      font-weight: 700;
-      color: #000;
-      text-transform: uppercase;
-      letter-spacing: 4px;
-      font-size: clamp(16px, 5vw, 42px);
-      background-image:
-        repeating-linear-gradient(
-          -30deg,
-          rgba(255,255,255,.12) 0 40px,
-          rgba(255,255,255,.15) 40px 80px
-        );
-    }
-    .ov-watermark span {
-      text-shadow: 0 1px 0 rgba(0,0,0,.1);
-    }
+        .ov-watermark {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            display: grid;
+            place-items: center;
+            opacity: .2;
+            mix-blend-mode: lighten;
+            font-weight: 700;
+            
+            /* Changed color to a dark ash gray */
+            color: #666362;
+            
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-size: clamp(16px, 5vw, 42px);
+            
+            /* Changed background gradient to use a darker ash tone */
+            background-image:
+                repeating-linear-gradient(
+                    -30deg,
+                    rgba(178,190,181,.12) 0 40px,
+                    rgba(178,190,181,.15) 40px 80px
+                );
+        }
+
+        .ov-watermark span {
+            text-shadow: 0 1px 0 rgba(0,0,0,.1);
+        }
     /* The actual YouTube host container */
     .yt-host, .yt-iframe {
       position: absolute; inset: 0; width: 100%; height: 100%;
@@ -530,6 +536,7 @@
   </script>
 </body>
 </html>
+
 
 
 
