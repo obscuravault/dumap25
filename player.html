@@ -22,29 +22,29 @@
       -webkit-user-select: none;
     }
     /* Watermark */
-    .ov-watermark {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      display: grid;
-      place-items: center;
-      opacity: .50;
-      mix-blend-mode: lighten;
-      font-weight: 700;
-      color: #000;
-      text-transform: uppercase;
-      letter-spacing: 4px;
-      font-size: clamp(16px, 5vw, 42px);
-      background-image:
-        repeating-linear-gradient(
-          -30deg,
-          rgba(0,0,0,.12) 0 40px,
-          rgba(0,0,0,.15) 40px 80px
-        );
-    }
-    .ov-watermark span {
-      text-shadow: 0 2px 0 rgba(0,0,0,1);
-    }
+    .ov-watermark {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: grid;
+      place-items: center;
+      opacity: 1;
+      mix-blend-mode: lighten;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      font-size: clamp(16px, 5vw, 42px);
+      background-image:
+        repeating-linear-gradient(
+          -30deg,
+          rgba(255,255,255,.12) 0 40px,
+          rgba(255,255,255,.15) 40px 80px
+        );
+    }
+    .ov-watermark span {
+      text-shadow: 0 1px 0 rgba(0,0,0,.1);
+    }
     /* The actual YouTube host container */
     .yt-host, .yt-iframe {
       position: absolute; inset: 0; width: 100%; height: 100%;
@@ -530,6 +530,7 @@
   </script>
 </body>
 </html>
+
 
 
 
