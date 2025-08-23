@@ -21,30 +21,31 @@
       user-select: none;
       -webkit-user-select: none;
     }
-    /* Watermark */
-    .ov-watermark {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      display: grid;
-      place-items: center;
-      opacity: .18;
-      mix-blend-mode: lighten;
-      font-weight: 700;
-      color: #fff;
-      text-transform: uppercase;
-      letter-spacing: 4px;
-      font-size: clamp(16px, 5vw, 42px);
-      background-image:
-        repeating-linear-gradient(
-          -30deg,
-          rgba(255,255,255,.12) 0 40px,
-          rgba(255,255,255,.15) 40px 80px
-        );
-    }
-    .ov-watermark span {
-      text-shadow: 0 1px 0 rgba(255,255,0,.5);
-    }
+ /* Watermark */
+    .ov-watermark {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: grid;
+      place-items: center;
+      opacity: .18;
+      mix-blend-mode: lighten;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      font-size: clamp(16px, 5vw, 42px);
+      background-image:
+        repeating-linear-gradient(
+          -30deg,
+          rgba(255,255,255,.12) 0 40px,
+          rgba(255,255,255,.15) 40px 80px
+        );
+    }
+    .ov-watermark span {
+      transform: rotate(-18deg);
+      text-shadow: 0 1px 0 rgba(0,0,0,.4);
+    }
     /* The actual YouTube host container */
     .yt-host, .yt-iframe {
       position: absolute; inset: 0; width: 100%; height: 100%;
@@ -530,6 +531,7 @@
   </script>
 </body>
 </html>
+
 
 
 
