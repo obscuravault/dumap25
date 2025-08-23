@@ -169,7 +169,7 @@ body{
 .part-desc{font-size:14px;color:#666}
 .part-actions{margin-left:auto;display:flex;gap:8px}
 .btn{
-  padding:8px 12px;border-radius:10px;border:1px solid #111;background:#111;color:#fff;cursor:pointer
+  padding:8px 12px;border-radius:10px;border:1px solid #111;background:#111;color:#000;cursor:pointer
 }
 .btn.secondary{background:#fff;color:#111;border-color:#ddd}
 
@@ -290,3 +290,4 @@ body{
   margin-top: .85rem;
   cursor: pointer;
 }
+
