@@ -6,6 +6,118 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="selenix.css">
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+  <!-- Minimal styles for custom controls & overlays -->
+  <style>
+    .player-wrap { max-width: 1100px; margin: 0 auto; }
+    .player-shell {
+      position: relative;
+      width: 100%;
+      background: #000;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,.35);
+      aspect-ratio: 16/9;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    /* Watermark */
+    .ov-watermark {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: grid;
+      place-items: center;
+      opacity: .18;
+      mix-blend-mode: lighten;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      font-size: clamp(16px, 5vw, 42px);
+      background-image:
+        repeating-linear-gradient(
+          -30deg,
+          rgba(255,255,255,.12) 0 40px,
+          rgba(255,255,255,.15) 40px 80px
+        );
+    }
+    .ov-watermark span {
+      transform: rotate(-18deg);
+      text-shadow: 0 1px 0 rgba(0,0,0,.4);
+    }
+    /* The actual YouTube host container */
+    .yt-host, .yt-iframe {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+    }
+    .yt-iframe { border: 0; }
+
+    /* Transparent layer that blocks direct interaction with iframe */
+    .anti-iframe {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      z-index: 4;
+      background: transparent;
+    }
+
+    /* Controls bar */
+    .controls {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      z-index: 5;
+      display: grid;
+      gap: 8px;
+      padding: 10px 12px;
+      background: linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,.0));
+    }
+    .row {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .btn, .icon {
+      appearance: none; border: 0; outline: 0;
+      background: rgba(255,255,255,.12);
+      color: #fff; padding: 8px 12px; border-radius: 12px;
+      font-size: 14px; line-height: 1; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px;
+      backdrop-filter: blur(6px);
+    }
+    .btn:hover, .icon:hover { background: rgba(255,255,255,.18); }
+    .btn:active, .icon:active { transform: translateY(1px); }
+
+    /* Time + seek */
+    .time {
+      color: #fff; font-variant-numeric: tabular-nums; font-size: 13px; opacity: .9;
+      min-width: 110px; text-align: center;
+    }
+    .seek {
+      flex: 1 1 auto;
+      display: flex; align-items: center; gap: 10px;
+      min-width: 120px;
+    }
+    .seek input[type="range"] {
+      -webkit-appearance: none; appearance: none; width: 100%;
+      height: 6px; border-radius: 999px;
+      background: rgba(255,255,255,.3); outline: none;
+    }
+    .seek input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #fff; cursor: pointer; box-shadow: 0 0 0 3px rgba(0,0,0,.2);
+    }
+    .seek input[type="range"]::-moz-range-thumb {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #fff; cursor: pointer; box-shadow: 0 0 0 3px rgba(0,0,0,.2);
+    }
+
+    /* Right-side controls */
+    .right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .speed {
+      background: rgba(255,255,255,.12);
+      color: #fff; border-radius: 12px; padding: 8px 10px; border: 0;
+    }
+
+    /* Prevent image/element dragging */
+    img, .player-shell, .anti-iframe { -webkit-user-drag: none; }
+  </style>
 </head>
 <body>
   <!-- Header -->
@@ -21,17 +133,10 @@
         <a href="lessons.html">Lessons</a>
         <a href="index.html#contact">Contact</a>
         <button class="icon-btn" data-open-search aria-label="Search">
-  <img
-    class="search-icon"
-    src="https://cdn-icons-png.flaticon.com/128/3686/3686896.png"
-    alt="Search"
-    loading="lazy"
-    decoding="async">
-</button>
+          <img class="search-icon" src="https://cdn-icons-png.flaticon.com/128/3686/3686896.png" alt="Search" loading="lazy" decoding="async">
+        </button>
       </nav>
-      <button class="icon-btn hamburger" aria-label="Menu">
-        <span></span><span></span><span></span>
-      </button>
+      <button class="icon-btn hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
     </div>
     <div class="mobile-drawer">
       <a href="index.html">Home</a>
@@ -65,8 +170,55 @@
     </div>
 
     <h2 id="playerTitle">Loading...</h2>
-    <div class="player-frame" id="playerFrame" aria-label="video player"></div>
-    <div class="player-cta">
+
+    <!-- Custom Player -->
+    <div class="player-shell" id="playerShell" aria-label="video player">
+      <!-- Host for YouTube iframe -->
+      <div class="yt-host" id="ytHost">
+        <div id="ytPlayer" class="yt-iframe" title="YouTube player"></div>
+      </div>
+
+      <!-- Transparent blocker over the iframe (prevents context menu & direct clicks) -->
+      <div class="anti-iframe" id="antiIframe" oncontextmenu="return false;"></div>
+
+      <!-- Watermark -->
+      <div class="ov-watermark" aria-hidden="true"><span>Obscura Vault</span></div>
+
+      <!-- Custom Controls -->
+      <div class="controls" id="controls">
+        <div class="row">
+          <button class="icon" id="playPause" aria-label="Play/Pause">
+            <i class='bx bx-play' id="playIcon"></i>
+            <span id="playLabel">Play</span>
+          </button>
+
+          <div class="seek">
+            <span class="time" id="timeLeft">00:00</span>
+            <input type="range" id="seekBar" min="0" max="1000" step="1" value="0" aria-label="Seek">
+            <span class="time" id="timeRight">00:00</span>
+          </div>
+
+          <div class="right">
+            <select class="speed" id="speed" aria-label="Playback speed">
+              <option value="0.5">0.5×</option>
+              <option value="0.75">0.75×</option>
+              <option value="1" selected>1×</option>
+              <option value="1.25">1.25×</option>
+              <option value="1.5">1.5×</option>
+              <option value="1.75">1.75×</option>
+              <option value="2">2×</option>
+            </select>
+
+            <button class="icon" id="fsBtn" aria-label="Fullscreen">
+              <i class='bx bx-fullscreen'></i>
+              <span>Full</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="player-cta" style="margin-top:10px">
       <a class="btn" id="telegramBtn" target="_blank">View in Telegram</a>
       <a class="btn secondary" id="resourceBtn" target="_blank">Resource</a>
     </div>
@@ -105,62 +257,225 @@
   <!-- Shared helpers -->
   <script src="selenix.js"></script>
 
+  <!-- YouTube IFrame API (do not async-defer when you need onYouTubeIframeAPIReady) -->
+  <script>
+    // Load the YouTube API once (idempotent)
+    (function ensureYTAPI(){
+      if (window.YT && window.YT.Player) return;
+      if (document.getElementById('yt-iframe-api')) return;
+      const s = document.createElement('script');
+      s.src = "https://www.youtube.com/iframe_api";
+      s.id = "yt-iframe-api";
+      document.head.appendChild(s);
+    })();
+  </script>
+
   <!-- Page script -->
   <script>
-  const state = { items:[], current:null, group:null, subjects:[], colors:{} };
+  // ---- State ----
+  const state = { items:[], current:null, group:null, subjects:[], colors:{}, player:null, apiReady:false, tick:null, seeking:false };
 
-  function getRID(){
-    const p = new URLSearchParams(location.search);
-    return p.get('rid');
+  // Basic route helpers
+  function getRID(){ return new URLSearchParams(location.search).get('rid'); }
+
+  // Extract a YouTube videoId from common URL formats
+  function extractYouTubeID(urlOrId){
+    if (!urlOrId) return null;
+    // already an 11-char ID
+    if (/^[a-zA-Z0-9_-]{11}$/.test(urlOrId)) return urlOrId;
+
+    try {
+      const u = new URL(urlOrId);
+      if (u.hostname.includes('youtu.be')) return u.pathname.slice(1);
+      if (u.searchParams.get('v')) return u.searchParams.get('v');
+      // embed or short formats
+      const m = u.pathname.match(/\/(embed|shorts|live)\/([a-zA-Z0-9_-]{11})/);
+      if (m) return m[2];
+    } catch {}
+    // fallback: try to pull last 11 id-like chars
+    const m2 = String(urlOrId).match(/([a-zA-Z0-9_-]{11})(?:[^a-zA-Z0-9_-]|$)/);
+    return m2 ? m2[1] : null;
   }
 
+  // Format time as mm:ss or hh:mm:ss
+  function fmt(seconds){
+    seconds = Math.max(0, Math.floor(seconds||0));
+    const h = Math.floor(seconds/3600);
+    const m = Math.floor((seconds%3600)/60);
+    const s = seconds%60;
+    if (h>0) return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+
+  // UI node refs
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => document.querySelectorAll(sel);
+
+  function wireControls(){
+    const playBtn = $('#playPause');
+    const playIcon = $('#playIcon');
+    const playLabel = $('#playLabel');
+    const seekBar = $('#seekBar');
+    const tL = $('#timeLeft');
+    const tR = $('#timeRight');
+    const speed = $('#speed');
+    const fsBtn = $('#fsBtn');
+    const shell = $('#playerShell');
+
+    // Play/Pause
+    playBtn.addEventListener('click', ()=>{
+      if (!state.player) return;
+      const st = state.player.getPlayerState();
+      if (st === YT.PlayerState.PLAYING) {
+        state.player.pauseVideo();
+      } else {
+        state.player.playVideo();
+      }
+    });
+
+    // Seek
+    seekBar.addEventListener('input', ()=>{
+      state.seeking = true;
+      const dur = state.player ? (state.player.getDuration()||0) : 0;
+      const target = (seekBar.value / 1000) * dur;
+      tL.textContent = fmt(target);
+    });
+    seekBar.addEventListener('change', ()=>{
+      const dur = state.player ? (state.player.getDuration()||0) : 0;
+      const target = (seekBar.value / 1000) * dur;
+      if (state.player && Number.isFinite(target)) {
+        state.player.seekTo(target, true);
+      }
+      state.seeking = false;
+    });
+
+    // Speed
+    speed.addEventListener('change', ()=>{
+      if (!state.player) return;
+      const rate = parseFloat(speed.value);
+      state.player.setPlaybackRate(rate);
+    });
+
+    // Fullscreen
+    fsBtn.addEventListener('click', ()=>{
+      const el = shell;
+      if (!document.fullscreenElement) {
+        if (el.requestFullscreen) el.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    });
+
+    // Tick updater
+    if (state.tick) clearInterval(state.tick);
+    state.tick = setInterval(()=>{
+      if (!state.player) return;
+      const st = state.player.getPlayerState?.();
+      const cur = state.player.getCurrentTime?.() || 0;
+      const dur = state.player.getDuration?.() || 0;
+
+      if (Number.isFinite(cur) && Number.isFinite(dur) && dur>0 && !state.seeking){
+        seekBar.value = Math.round((cur / dur) * 1000);
+        tL.textContent = fmt(cur);
+        tR.textContent = fmt(dur);
+      }
+
+      // icon/label
+      if (st === YT.PlayerState.PLAYING) {
+        playIcon.className = 'bx bx-pause';
+        playLabel.textContent = 'Pause';
+      } else {
+        playIcon.className = 'bx bx-play';
+        playLabel.textContent = 'Play';
+      }
+    }, 200);
+  }
+
+  // Initialize YT Player for the current item
+  function initYT(videoId){
+    const host = document.getElementById('ytPlayer');
+    host.innerHTML = ''; // ensure clean
+
+    state.player = new YT.Player('ytPlayer', {
+      videoId,
+      playerVars: {
+        autoplay: 1,
+        controls: 0,
+        disablekb: 1,
+        modestbranding: 1,
+        rel: 0,
+        fs: 0,
+        playsinline: 1,
+        iv_load_policy: 3
+      },
+      events: {
+        onReady: (e) => {
+          // populate available rates into the menu
+          const rates = state.player.getAvailablePlaybackRates?.() || [0.5,0.75,1,1.25,1.5,1.75,2];
+          const speedSel = $('#speed');
+          const currentOptions = Array.from(speedSel.options).map(o=>parseFloat(o.value));
+          // refresh only if differs
+          if (JSON.stringify(currentOptions) !== JSON.stringify(rates)) {
+            speedSel.innerHTML = rates.map(r=>`<option value="${r}" ${r===1?'selected':''}>${r}×</option>`).join('');
+          }
+          wireControls();
+        }
+      }
+    });
+  }
+
+  // Render page
   function renderPlayer(){
-    const f = document.getElementById('playerFrame');
     const t = document.getElementById('playerTitle');
     if (!state.current){ t.textContent='Not found'; return; }
 
     t.textContent = `${state.current.lesson} — ${state.current.partTitle}`;
-    f.innerHTML = '';
-    const iframe = document.createElement('iframe');
-    iframe.width='100%'; iframe.height='100%';
-    iframe.allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
-    iframe.referrerPolicy="strict-origin-when-cross-origin"; iframe.allowFullscreen = true;
-    iframe.src = selenix.normalizeYouTube(state.current.youtube);
-    f.appendChild(iframe);
 
+    // Buttons
     const tg = document.getElementById('telegramBtn');
     const rs = document.getElementById('resourceBtn');
     tg.href = state.current.telegram || '#';
     rs.href = state.current.resource || '#';
 
+    // Related parts
     const rel = document.getElementById('relatedCards');
     rel.innerHTML = '';
-    if (!state.group) return;
-
-    state.group.parts.forEach(p=>{
-      const card = document.createElement('div'); card.className='card';
-      const img = document.createElement('img'); img.src = p.thumb || ''; img.alt = p.partTitle || 'thumbnail';
-      card.appendChild(img);
-      const body = document.createElement('div'); body.className='card-body';
-      const tag = document.createElement('div'); tag.className='tag-row';
-      const dot = document.createElement('span'); dot.className='dot'; dot.style.setProperty('--subject-color', state.colors[state.group.subject]||'#000');
-      tag.appendChild(dot);
-      tag.appendChild(document.createTextNode(`${state.group.subject}`));
-      const h4 = document.createElement('h4'); h4.textContent = p.partTitle || 'Part';
-      const desc = document.createElement('p'); desc.textContent = p.description || '';
-      const actions = document.createElement('div'); actions.className='card-actions';
-      const open = document.createElement('button'); open.className='btn'; open.textContent = (p.id === state.current.id) ? 'Now Playing' : 'Play';
-      open.disabled = (p.id === state.current.id);
-      open.addEventListener('click', ()=>window.location.href=`player.html?rid=${encodeURIComponent(p.id)}`);
-      actions.appendChild(open);
-      body.appendChild(tag); body.appendChild(h4); body.appendChild(desc); body.appendChild(actions);
-      card.appendChild(body);
-      rel.appendChild(card);
-    });
+    if (state.group){
+      state.group.parts.forEach(p=>{
+        const card = document.createElement('div'); card.className='card';
+        const img = document.createElement('img'); img.src = p.thumb || ''; img.alt = p.partTitle || 'thumbnail';
+        card.appendChild(img);
+        const body = document.createElement('div'); body.className='card-body';
+        const tag = document.createElement('div'); tag.className='tag-row';
+        const dot = document.createElement('span'); dot.className='dot'; dot.style.setProperty('--subject-color', state.colors[state.group.subject]||'#000');
+        tag.appendChild(dot);
+        tag.appendChild(document.createTextNode(`${state.group.subject}`));
+        const h4 = document.createElement('h4'); h4.textContent = p.partTitle || 'Part';
+        const desc = document.createElement('p'); desc.textContent = p.description || '';
+        const actions = document.createElement('div'); actions.className='card-actions';
+        const open = document.createElement('button'); open.className='btn'; open.textContent = (p.id === state.current.id) ? 'Now Playing' : 'Play';
+        open.disabled = (p.id === state.current.id);
+        open.addEventListener('click', ()=>window.location.href=`player.html?rid=${encodeURIComponent(p.id)}`);
+        actions.appendChild(open);
+        body.appendChild(tag); body.appendChild(h4); body.appendChild(desc); body.appendChild(actions);
+        card.appendChild(body);
+        rel.appendChild(card);
+      });
+    }
   }
 
+  // Boot
   async function boot(){
     selenix.initHeader();
+
+    // global right-click/drag disable (best-effort)
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('dragstart', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
+      // Block common "save/open" combos within the page context
+      if ((e.ctrlKey || e.metaKey) && ['s','u','p'].includes(e.key.toLowerCase())) e.preventDefault();
+    });
+
     try {
       state.items = await selenix.fetchSheet();
       state.subjects = selenix.uniqueSubjects(state.items);
@@ -172,13 +487,33 @@
         state.group = groups.find(g=>g.subject===state.current.subject && g.lesson===state.current.lesson);
       }
       renderPlayer();
+
+      // Wait YouTube API then init
+      function startIfReady(){
+        if (window.YT && window.YT.Player){
+          const vid = extractYouTubeID(state.current?.youtube);
+          if (!vid) {
+            document.getElementById('playerTitle').textContent = 'Video ID not found.';
+            return;
+          }
+          initYT(vid);
+        } else {
+          setTimeout(startIfReady, 80);
+        }
+      }
+      startIfReady();
+
     } catch (e){
       console.error(e);
       document.getElementById('playerTitle').textContent = 'Failed to load player.';
     }
   }
+  // YouTube API callback is required globally; we chain to boot if needed.
+  function onYouTubeIframeAPIReady(){
+    // If boot already ran, we’ll init from there; otherwise boot will call later.
+  }
+
   boot();
   </script>
 </body>
-
 </html>
