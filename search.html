@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>selenix — Search</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="selenix.css">
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="container nav">
+      <a class="brand" href="index.html">
+        <img alt="selenix logo">
+        <div class="logo-text">selenix</div>
+      </a>
+      <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="index.html#about">About</a>
+        <a href="lessons.html">Lessons</a>
+        <a href="index.html#contact">Contact</a>
+        <button class="icon-btn" data-open-search aria-label="Search">
+  <img
+    class="search-icon"
+    src="https://cdn-icons-png.flaticon.com/128/3686/3686896.png"
+    alt="Search"
+    loading="lazy"
+    decoding="async">
+</button>
+      </nav>
+      <button class="icon-btn hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="mobile-drawer">
+      <a href="index.html">Home</a>
+      <a href="index.html#about">About</a>
+      <a href="lessons.html">Lessons</a>
+      <a href="index.html#contact">Contact</a>
+      <a href="#" data-open-search>Search</a>
+    </div>
+    <div class="mobile-searchbar">
+      <form id="mobileSearchForm">
+        <input id="mobileSearch" placeholder="Search lessons...">
+        <button type="submit">Search</button>
+      </form>
+    </div>
+  </header>
+
+  <!-- Search overlay -->
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-card">
+      <h3>Search lessons</h3>
+      <div class="search-row">
+        <input id="globalSearchInput" placeholder="Type keyword...">
+        <button id="globalSearchGo">Search</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="back-row" style="margin-top:10px">
+      <button data-back>← Back</button>
+    </div>
+
+    <div style="display:flex;gap:10px;align-items:center;margin:12px 0 6px">
+      <input id="searchInput" placeholder="Search all lessons..." style="flex:1;padding:12px;border:1px solid #ddd;border-radius:10px">
+      <button class="btn" id="doSearch">Search</button>
+      <button class="btn secondary" id="openFilter">Filter</button>
+    </div>
+
+    <div id="resultsInfo" style="color:#666;margin:8px 2px 12px"></div>
+    <div class="cards" id="results"></div>
+  </div>
+
+  <!-- Filter modal -->
+  <div class="modal" id="filterModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Advanced Filter</h3>
+        <button class="icon-btn" id="closeFilter">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <label style="font-size:13px;color:#666">Select subject</label>
+            <div class="chips" id="filterSubjects"></div>
+          </div>
+          <div>
+            <label style="font-size:13px;color:#666">Select lesson</label>
+            <select id="filterLesson" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:10px">
+              <option value="">All lessons</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
+          <button class="btn secondary" id="clearFilter">Clear</button>
+          <button class="btn" id="applyFilter">Apply</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-top-art"></div>
+    <div class="container">
+      <div class="footer-inner" style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;text-align:center;gap:18px;padding-top:10px;padding-bottom:50px">
+        <div class="footer-social" style="display:flex;gap:18px">
+          <a href="https://t.me/example" target="_blank" aria-label="Telegram" title="Telegram"
+             style="width:44px;height:44px;border-radius:50%;background:#fff;color:#111;display:inline-flex;align-items:center;justify-content:center;font-size:26px;text-decoration:none">
+            <i class='bx bxl-telegram'></i>
+          </a>
+          <a href="https://www.youtube.com/@SeleNix_Offcial" target="_blank" aria-label="YouTube" title="YouTube"
+             style="width:44px;height:44px;border-radius:50%;background:#fff;color:#111;display:inline-flex;align-items:center;justify-content:center;font-size:26px;text-decoration:none">
+            <i class='bx bxl-youtube'></i>
+          </a>
+        </div>
+        <nav class="footer-menu" style="display:flex;gap:26px;flex-wrap:wrap;justify-content:center">
+          <a href="index.html" style="color:#eaeaea;text-decoration:none">Home</a>
+          <a href="index.html#about" style="color:#eaeaea;text-decoration:none">About</a>
+          <a href="lessons.html" style="color:#eaeaea;text-decoration:none">Lessons</a>
+          <a href="index.html#contact" style="color:#eaeaea;text-decoration:none">Contact</a>
+        </nav>
+        <div class="footer-copy" style="font-size:13px;color:#bdbdbd">© 2025 selenix • DO SUMTHING GOOD</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Shared helpers -->
+  <script src="selenix.js"></script>
+
+  <!-- Page script -->
+  <script>
+  const state = { items:[], groups:[], subjects:[], colors:{}, q:'', fSubject:'', fLesson:'' };
+
+  function parseQuery(){
+    const p = new URLSearchParams(location.search);
+    return (p.get('q')||'').trim();
+  }
+
+  function applyFilterAndSearch(){
+    let g = state.groups;
+
+    const q = state.q.toLowerCase();
+    if (q){
+      g = g.map(group=>{
+        const hitLesson = group.lesson.toLowerCase().includes(q) || group.subject.toLowerCase().includes(q);
+        const parts = group.parts.filter(p => (p.partTitle||'').toLowerCase().includes(q) || (p.description||'').toLowerCase().includes(q));
+        if (hitLesson || parts.length) return {...group, parts: parts.length? parts: group.parts};
+        return null;
+      }).filter(Boolean);
+    }
+
+    if (state.fSubject) g = g.filter(x=>x.subject===state.fSubject);
+    if (state.fLesson) g = g.filter(x=>x.lesson===state.fLesson);
+
+    renderResults(g);
+  }
+
+  function renderResults(groups){
+    const results = document.getElementById('results');
+    const info = document.getElementById('resultsInfo');
+    results.innerHTML = '';
+
+    let totalParts = groups.reduce((a,g)=>a+g.parts.length,0);
+    info.textContent = `${groups.length} lesson${groups.length===1?'':'s'} • ${totalParts} part${totalParts===1?'':'s'}`;
+
+    groups.forEach(g=>{
+      const card = document.createElement('div'); card.className='card';
+      const img = document.createElement('img'); img.alt = `${g.lesson} thumbnail`;
+      img.src = (g.parts[0]?.thumb || '');
+      card.appendChild(img);
+
+      const body = document.createElement('div'); body.className='card-body';
+      const tag = document.createElement('div'); tag.className='tag-row';
+      const dot = document.createElement('span'); dot.className='dot'; dot.style.setProperty('--subject-color', state.colors[g.subject]||'#000');
+      tag.appendChild(dot);
+      const small = document.createElement('span'); small.textContent = `${g.subject} • ${selenix.formatCount(g.parts.length)}`;
+      tag.appendChild(small);
+
+      const h4 = document.createElement('h4'); h4.textContent = g.lesson;
+      const p = document.createElement('p'); p.textContent = g.parts[0]?.description || '';
+
+      const actions = document.createElement('div'); actions.className='card-actions';
+      const open = document.createElement('button'); open.className='btn'; open.textContent='Open';
+      open.addEventListener('click', ()=>{
+        if (g.parts.length === 1) window.location.href = `player.html?rid=${encodeURIComponent(g.parts[0].id)}`;
+        else window.location.href = `lessons.html?subject=${encodeURIComponent(g.subject)}&lesson=${encodeURIComponent(g.lesson)}`;
+      });
+      actions.appendChild(open);
+
+      g.parts.slice(0,2).forEach(part=>{
+        const quick = document.createElement('button'); quick.className='btn secondary'; quick.textContent=part.partTitle || 'Part';
+        quick.addEventListener('click', ()=>window.location.href = `player.html?rid=${encodeURIComponent(part.id)}`);
+        actions.appendChild(quick);
+      });
+
+      body.appendChild(tag); body.appendChild(h4); body.appendChild(p); body.appendChild(actions);
+      card.appendChild(body);
+
+      results.appendChild(card);
+    });
+  }
+
+  function buildFilterUI(){
+    const fs = document.getElementById('filterSubjects');
+    fs.innerHTML = '';
+    const makeChip = (label)=>{
+      const b = document.createElement('button');
+      b.className='chip' + (state.fSubject===label?' active':'');
+      b.textContent = label;
+      b.addEventListener('click', ()=>{
+        state.fSubject = (state.fSubject===label ? '' : label);
+        buildFilterUI();
+        fillLessonDropdown();
+      });
+      return b;
+    };
+    fs.appendChild(makeChip('All'));
+    state.subjects.forEach(s=>fs.appendChild(makeChip(s)));
+    fillLessonDropdown();
+  }
+
+  function fillLessonDropdown(){
+    const dd = document.getElementById('filterLesson');
+    const before = dd.value;
+    dd.innerHTML = '<option value="">All lessons</option>';
+    let base = state.groups;
+    if (state.fSubject) base = base.filter(x=>x.subject===state.fSubject);
+    const lessons = Array.from(new Set(base.map(x=>x.lesson))).sort((a,b)=>a.localeCompare(b));
+    lessons.forEach(l=>{
+      const opt = document.createElement('option'); opt.value = l; opt.textContent = l;
+      dd.appendChild(opt);
+    });
+    dd.value = lessons.includes(before) ? before : '';
+  }
+
+  async function boot(){
+    selenix.initHeader();
+    try {
+      state.items = await selenix.fetchSheet();
+      state.groups = selenix.groupByLesson(state.items);
+      state.subjects = selenix.uniqueSubjects(state.items);
+      state.colors = selenix.subjectColorMap(state.subjects);
+
+      state.q = parseQuery();
+      const input = document.getElementById('searchInput');
+      input.value = state.q;
+
+      document.getElementById('doSearch').addEventListener('click', ()=>{
+        state.q = input.value.trim(); applyFilterAndSearch();
+      });
+      input.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('doSearch').click(); }});
+
+      const fm = document.getElementById('filterModal');
+      document.getElementById('openFilter').addEventListener('click', ()=>{ fm.classList.add('open'); buildFilterUI(); });
+      document.getElementById('closeFilter').addEventListener('click', ()=> fm.classList.remove('open'));
+      document.getElementById('clearFilter').addEventListener('click', ()=>{ state.fSubject=''; state.fLesson=''; buildFilterUI(); applyFilterAndSearch(); });
+      document.getElementById('applyFilter').addEventListener('click', ()=>{
+        state.fLesson = document.getElementById('filterLesson').value || '';
+        fm.classList.remove('open');
+        applyFilterAndSearch();
+      });
+
+      applyFilterAndSearch();
+    } catch (e){
+      console.error(e);
+      document.getElementById('results').innerHTML = '<p>Failed to load search data.</p>';
+    }
+  }
+  boot();
+  </script>
+</body>
+
+</html>

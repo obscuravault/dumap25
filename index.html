@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>selenix — study better</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="selenix.css">
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="container nav">
+      <a class="brand" href="index.html" aria-label="selenix home">
+        <img alt="selenix logo">
+        <div class="logo-text">selenix</div>
+      </a>
+      <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="#about">About</a>
+        <a href="lessons.html">Lessons</a>
+        <a href="#contact">Contact</a>
+        <button class="icon-btn" data-open-search aria-label="Search">
+  <img
+    class="search-icon"
+    src="https://cdn-icons-png.flaticon.com/128/3686/3686896.png"
+    alt="Search"
+    loading="lazy"
+    decoding="async">
+</button>
+      </nav>
+      <button class="icon-btn hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="mobile-drawer">
+      <a href="index.html">Home</a>
+      <a href="#about">About</a>
+      <a href="lessons.html">Lessons</a>
+      <a href="#contact">Contact</a>
+      <a href="#" data-open-search>Search</a>
+    </div>
+    <div class="mobile-searchbar">
+      <form id="mobileSearchForm">
+        <input id="mobileSearch" placeholder="Search lessons...">
+        <button type="submit">Search</button>
+      </form>
+    </div>
+  </header>
+
+  <!-- Search overlay -->
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-card">
+      <h3>Search lessons</h3>
+      <div class="search-row">
+        <input id="globalSearchInput" placeholder="Type keyword...">
+        <button id="globalSearchGo">Search</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-copy">
+        <div class="kicker">By Selenix Admin Pannel</div>
+        <div class="h1">WE MAKE A/L SIMPLE</div>
+        <div class="h2">Built by students, for students.</div>
+        <p class="sub">Learn anytime with lessons organized by subject and topic. No paywalls. No sign‑ups. 100% free.</p>
+
+        <!-- Actions: back removed, replaced with Search -->
+        <div class="action-row" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+          <button class="btn" data-open-search>Search</button>
+          <a class="btn secondary" href="lessons.html">Browse Lessons</a>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section class="section" id="about">
+    <div class="container">
+      <h3>About</h3>
+<p class="lead">
+  selenix is a volunteer‑run hub that helps students access A/L classes without any cost. 
+  We curate open lessons, notes, and resources, then organize them by subject and topic so you can find 
+  exactly what you need—fast.
+</p>
+  <ul style="margin:14px 0 0 18px; color:#444; line-height:1.6">
+  <li>Lessons grouped by subject and lesson</li>
+  <li>YouTube player with related parts</li>
+  <li>Notes, resource links, and Telegram updates</li>
+  <li>Global search and smart filters</li>
+  <li>Mobile‑first, fast, and free—always</li>
+  </ul>
+    <p style="margin-top:14px; color:#555">
+    We respect creators. All credit belongs to the original educators and channels. 
+    Content owners can contact us for updates or removals.
+    </p>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section class="section" id="contact">
+    <div class="container">
+<h3>Contact</h3>
+<p class="lead">
+  Need help, have a suggestion, or found a broken link? Message our admin on Telegram—fastest way to reach us.
+</p>
+
+<div class="contact-row" style="display:flex;align-items:center;gap:14px;margin-top:12px">
+  <a class="btn" href="https://t.me/SelenixAL" target="_blank" rel="noopener">
+    Message Admin @SelenixAL
+  </a>
+  <span style="color:#666">We reply as soon as we can.</span>
+</div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-top-art"></div>
+    <div class="container">
+      <div class="footer-inner" style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;text-align:center;gap:18px;padding-top:10px;padding-bottom:50px">
+        <!-- Social icons row -->
+        <div class="footer-social" style="display:flex;gap:18px">
+          <a href="https://t.me/example" target="_blank" aria-label="Telegram" title="Telegram"
+             style="width:44px;height:44px;border-radius:50%;background:#fff;color:#111;display:inline-flex;align-items:center;justify-content:center;font-size:26px;text-decoration:none">
+            <i class='bx bxl-telegram'></i>
+          </a>
+          <a href="https://www.youtube.com/@SeleNix_Offcial" target="_blank" aria-label="YouTube" title="YouTube"
+             style="width:44px;height:44px;border-radius:50%;background:#fff;color:#111;display:inline-flex;align-items:center;justify-content:center;font-size:26px;text-decoration:none">
+            <i class='bx bxl-youtube'></i>
+          </a>
+        </div>
+
+        <!-- Footer nav -->
+        <nav class="footer-menu" style="display:flex;gap:26px;flex-wrap:wrap;justify-content:center">
+          <a href="index.html" style="color:#eaeaea;text-decoration:none">Home</a>
+          <a href="index.html#about" style="color:#eaeaea;text-decoration:none">About</a>
+          <a href="lessons.html" style="color:#eaeaea;text-decoration:none">Lessons</a>
+          <a href="index.html#contact" style="color:#eaeaea;text-decoration:none">Contact</a>
+        </nav>
+
+        <!-- Copy -->
+        <div class="footer-copy" style="font-size:13px;color:#bdbdbd">
+          © 2025 selenix • DO SUMTHING GOOD
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Shared helpers -->
+  <script src="selenix.js"></script>
+
+  <!-- Page script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', selenix.initHeader);
+  </script>
+</body>
+
+</html>

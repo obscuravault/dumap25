@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>selenix — Player</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="selenix.css">
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="container nav">
+      <a class="brand" href="index.html">
+        <img alt="selenix logo">
+        <div class="logo-text">selenix</div>
+      </a>
+      <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="index.html#about">About</a>
+        <a href="lessons.html">Lessons</a>
+        <a href="index.html#contact">Contact</a>
+        <button class="icon-btn" data-open-search aria-label="Search">
+  <img
+    class="search-icon"
+    src="https://cdn-icons-png.flaticon.com/128/3686/3686896.png"
+    alt="Search"
+    loading="lazy"
+    decoding="async">
+</button>
+      </nav>
+      <button class="icon-btn hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="mobile-drawer">
+      <a href="index.html">Home</a>
+      <a href="index.html#about">About</a>
+      <a href="lessons.html">Lessons</a>
+      <a href="index.html#contact">Contact</a>
+      <a href="#" data-open-search>Search</a>
+    </div>
+    <div class="mobile-searchbar">
+      <form id="mobileSearchForm">
+        <input id="mobileSearch" placeholder="Search lessons...">
+        <button type="submit">Search</button>
+      </form>
+    </div>
+  </header>
+
+  <!-- Search overlay -->
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-card">
+      <h3>Search lessons</h3>
+      <div class="search-row">
+        <input id="globalSearchInput" placeholder="Type keyword...">
+        <button id="globalSearchGo">Search</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container player-wrap">
+    <div class="back-row">
+      <button data-back>← Back</button>
+    </div>
+
+    <h2 id="playerTitle">Loading...</h2>
+    <div class="player-frame" id="playerFrame" aria-label="video player"></div>
+    <div class="player-cta">
+      <a class="btn" id="telegramBtn" target="_blank">View in Telegram</a>
+      <a class="btn secondary" id="resourceBtn" target="_blank">Resource</a>
+    </div>
+
+    <div class="bar" style="margin:20px 0 16px"></div>
+    <h3>Other parts in this lesson</h3>
+    <div class="cards" id="relatedCards"></div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-top-art"></div>
+    <div class="container">
+      <div class="footer-inner" style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;text-align:center;gap:18px;padding-top:10px;padding-bottom:50px">
+        <div class="footer-social" style="display:flex;gap:18px">
+          <a href="https://t.me/Selenix_main" target="_blank" aria-label="Telegram" title="Telegram"
+             style="width:44px;height:44px;border-radius:50%;background:#fff;color:#111;display:inline-flex;align-items:center;justify-content:center;font-size:26px;text-decoration:none">
+            <i class='bx bxl-telegram'></i>
+          </a>
+          <a href="https://www.youtube.com/@SeleNix_Offcial" target="_blank" aria-label="YouTube" title="YouTube"
+             style="width:44px;height:44px;border-radius:50%;background:#fff;color:#111;display:inline-flex;align-items:center;justify-content:center;font-size:26px;text-decoration:none">
+            <i class='bx bxl-youtube'></i>
+          </a>
+        </div>
+        <nav class="footer-menu" style="display:flex;gap:26px;flex-wrap:wrap;justify-content:center">
+          <a href="index.html" style="color:#eaeaea;text-decoration:none">Home</a>
+          <a href="index.html#about" style="color:#eaeaea;text-decoration:none">About</a>
+          <a href="lessons.html" style="color:#eaeaea;text-decoration:none">Lessons</a>
+          <a href="index.html#contact" style="color:#eaeaea;text-decoration:none">Contact</a>
+        </nav>
+        <div class="footer-copy" style="font-size:13px;color:#bdbdbd">© 2025 selenix • DO SUMTHING GOOD</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Shared helpers -->
+  <script src="selenix.js"></script>
+
+  <!-- Page script -->
+  <script>
+  const state = { items:[], current:null, group:null, subjects:[], colors:{} };
+
+  function getRID(){
+    const p = new URLSearchParams(location.search);
+    return p.get('rid');
+  }
+
+  function renderPlayer(){
+    const f = document.getElementById('playerFrame');
+    const t = document.getElementById('playerTitle');
+    if (!state.current){ t.textContent='Not found'; return; }
+
+    t.textContent = `${state.current.lesson} — ${state.current.partTitle}`;
+    f.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    iframe.width='100%'; iframe.height='100%';
+    iframe.allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+    iframe.referrerPolicy="strict-origin-when-cross-origin"; iframe.allowFullscreen = true;
+    iframe.src = selenix.normalizeYouTube(state.current.youtube);
+    f.appendChild(iframe);
+
+    const tg = document.getElementById('telegramBtn');
+    const rs = document.getElementById('resourceBtn');
+    tg.href = state.current.telegram || '#';
+    rs.href = state.current.resource || '#';
+
+    const rel = document.getElementById('relatedCards');
+    rel.innerHTML = '';
+    if (!state.group) return;
+
+    state.group.parts.forEach(p=>{
+      const card = document.createElement('div'); card.className='card';
+      const img = document.createElement('img'); img.src = p.thumb || ''; img.alt = p.partTitle || 'thumbnail';
+      card.appendChild(img);
+      const body = document.createElement('div'); body.className='card-body';
+      const tag = document.createElement('div'); tag.className='tag-row';
+      const dot = document.createElement('span'); dot.className='dot'; dot.style.setProperty('--subject-color', state.colors[state.group.subject]||'#000');
+      tag.appendChild(dot);
+      tag.appendChild(document.createTextNode(`${state.group.subject}`));
+      const h4 = document.createElement('h4'); h4.textContent = p.partTitle || 'Part';
+      const desc = document.createElement('p'); desc.textContent = p.description || '';
+      const actions = document.createElement('div'); actions.className='card-actions';
+      const open = document.createElement('button'); open.className='btn'; open.textContent = (p.id === state.current.id) ? 'Now Playing' : 'Play';
+      open.disabled = (p.id === state.current.id);
+      open.addEventListener('click', ()=>window.location.href=`player.html?rid=${encodeURIComponent(p.id)}`);
+      actions.appendChild(open);
+      body.appendChild(tag); body.appendChild(h4); body.appendChild(desc); body.appendChild(actions);
+      card.appendChild(body);
+      rel.appendChild(card);
+    });
+  }
+
+  async function boot(){
+    selenix.initHeader();
+    try {
+      state.items = await selenix.fetchSheet();
+      state.subjects = selenix.uniqueSubjects(state.items);
+      state.colors = selenix.subjectColorMap(state.subjects);
+      const rid = getRID();
+      state.current = state.items.find(x=>x.id===rid);
+      if (state.current){
+        const groups = selenix.groupByLesson(state.items);
+        state.group = groups.find(g=>g.subject===state.current.subject && g.lesson===state.current.lesson);
+      }
+      renderPlayer();
+    } catch (e){
+      console.error(e);
+      document.getElementById('playerTitle').textContent = 'Failed to load player.';
+    }
+  }
+  boot();
+  </script>
+</body>
+
+</html>
