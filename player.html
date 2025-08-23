@@ -72,6 +72,20 @@
     .row {
       display: flex; align-items: center; gap: 10px;
     }
+    
+    .btn1, .icon {
+      appearance: none; border: 0; outline: 0;
+      background: rgba(0,0,0,.12);
+      color: #fff; padding: 8px 12px; border-radius: 12px;
+      font-size: 14px; line-height: 1; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px;
+      backdrop-filter: blur(6px);
+    }
+    .btn1:hover, .icon:hover { background: rgba(255,255,255,.18); 
+                              color: #000; padding: 8px 12px; border-radius: 12px;
+                             }
+    .btn1:active, .icon:active { transform: translateY(1px); }    
+
     .btn, .icon {
       appearance: none; border: 0; outline: 0;
       background: rgba(255,255,255,.12);
@@ -219,8 +233,8 @@
     </div>
 
     <div class="player-cta" style="margin-top:10px">
-      <a class="btn" id="telegramBtn" target="_blank">View in Telegram</a>
-      <a class="btn secondary" id="resourceBtn" target="_blank">Resource</a>
+      <a class="btn1" id="telegramBtn" target="_blank">View in Telegram</a>
+      <a class="btn1 secondary" id="resourceBtn" target="_blank">Resource</a>
     </div>
 
     <div class="bar" style="margin:20px 0 16px"></div>
