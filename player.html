@@ -466,7 +466,7 @@
         const h4 = document.createElement('h4'); h4.textContent = p.partTitle || 'Part';
         const desc = document.createElement('p'); desc.textContent = p.description || '';
         const actions = document.createElement('div'); actions.className='card-actions';
-        const open = document.createElement('button'); open.className='btn'; open.textContent = (p.id === state.current.id) ? 'Now Playing' : 'Play';
+        const open = document.createElement('button'); open.className='btn1'; open.textContent = (p.id === state.current.id) ? 'Now Playing' : 'Play';
         open.disabled = (p.id === state.current.id);
         open.addEventListener('click', ()=>window.location.href=`player.html?rid=${encodeURIComponent(p.id)}`);
         actions.appendChild(open);
@@ -530,6 +530,7 @@
   </script>
 </body>
 </html>
+
 
 
 
