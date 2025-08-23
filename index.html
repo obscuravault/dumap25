@@ -8,6 +8,26 @@
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 </head>
 <body>
+  <div class="wrap" id="content">
+    <div class="card">
+      <div class="badge">Protected Content</div>
+      <h1>Restricted Area</h1>
+      <p>This page is protected. Opening DevTools, copying, or using
+         restricted shortcuts will lock the content.</p>
+      <p class="hint">Implement real security on the server as well.</p>
+    </div>
+  </div>
+
+  <!-- Lock overlay -->
+  <div class="lock" id="lock">
+    <div class="lock-card">
+      <h2>Access Denied</h2>
+      <p>Developer mode, inspection, or restricted actions detected.</p>
+      <small id="reason">Reason: Suspicious activity</small><br/>
+      <button class="btn" id="reloadBtn" type="button" aria-label="Reload">Reload</button>
+    </div>
+  </div>
+  
   <!-- Header -->
   <header class="header">
     <div class="container nav">
@@ -160,5 +180,6 @@
 </body>
 
 </html>
+
 
 
