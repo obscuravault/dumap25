@@ -21,6 +21,28 @@
       user-select: none;
       -webkit-user-select: none;
     }
+/*Watermark Image*/
+.ov-watermark1 {
+  position: absolute;
+  bottom: 10px;  /* distance from bottom */
+  right: 10px;   /* distance from right */
+  pointer-events: none;
+  opacity: 0.18; /* overall transparency */
+  mix-blend-mode: difference; /* adapts to light/dark backgrounds */
+  width: 100px;  /* set square size */
+  height: 100px; /* same as width */
+  overflow: hidden; /* ensures image stays within the square */
+}
+
+.ov-watermark1 img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* crops image to fill square */
+  filter: invert(1); /* inverts colors: white → black */
+  opacity: 0.6;      /* fine-tune visibility */
+}
+
+    
  /* Watermark */
     .ov-watermark {
       position: absolute;
@@ -196,6 +218,10 @@
 
       <!-- Watermark -->
       <div class="ov-watermark" aria-hidden="true"><span>Obscura Vault</span></div>
+      <div class="ov-watermark1">
+  <img src="http://lumosbio.infy.uk/wp-content/uploads/2025/08/Imaf.png" alt="Watermark">
+    </div>
+
 
       <!-- Custom Controls -->
       <div class="controls" id="controls">
@@ -530,6 +556,7 @@
   </script>
 </body>
 </html>
+
 
 
 
