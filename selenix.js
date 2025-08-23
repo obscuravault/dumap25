@@ -254,11 +254,13 @@
   setInterval(runChecks, CHECK_INTERVAL_MS);
 
   if (ENFORCE_ON_LOAD) {
-    showLock("Pre-auth lock");
-    setTimeout(()=>{ if (!devtoolsSizeHeuristic()) hideLock(); },300);
+  // start checks but don't lock immediately
+  runChecks();
   }
+   
 
 })();
+
 
 
 
