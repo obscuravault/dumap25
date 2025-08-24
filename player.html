@@ -344,6 +344,11 @@
       .right {
         gap: 6px;
       }
+      
+      /* Hide volume slider on mobile */
+      .volume-slider {
+        display: none !important;
+      }
     }
 
     /* Right-side controls */
@@ -386,6 +391,25 @@
     .landscape-fullscreen .controls {
       padding: 15px;
       background: linear-gradient(to top, rgba(0,0,0,.85), rgba(0,0,0,.0));
+    }
+    
+    /* Force landscape orientation in fullscreen */
+    @media (max-width: 768px) {
+      .landscape-fullscreen {
+        transform: rotate(90deg);
+        transform-origin: bottom left;
+        width: 100vh;
+        height: 100vw;
+        top: 0;
+        left: 100vw;
+      }
+      
+      .landscape-fullscreen .yt-host,
+      .landscape-fullscreen .yt-iframe,
+      .landscape-fullscreen .anti-iframe {
+        width: 100vh;
+        height: 100vw;
+      }
     }
     
     /* Prevent image/element dragging */
@@ -769,9 +793,15 @@
     if (window.innerWidth <= 768) {
       lsBtn.style.display = 'inline-flex';
       fsBtn.style.display = 'none';
+      
+      // Hide volume slider on mobile
+      volumeSlider.style.display = 'none';
     } else {
       lsBtn.style.display = 'none';
       fsBtn.style.display = 'inline-flex';
+      
+      // Show volume slider on desktop
+      volumeSlider.style.display = 'block';
     }
 
     // Play/Pause
@@ -893,12 +923,22 @@
           document.body.style.overflow = '';
           lsBtn.innerHTML = '<i class="bx bx-expand-horizontal"></i><span>Landscape</span>';
           state.isLandscapeFullscreen = false;
+          
+          // Lock to portrait orientation
+          screen.orientation.unlock();
         } else {
           // Enter landscape fullscreen
           shell.classList.add('landscape-fullscreen');
           document.body.style.overflow = 'hidden';
           lsBtn.innerHTML = '<i class="bx bx-collapse-horizontal"></i><span>Exit</span>';
           state.isLandscapeFullscreen = true;
+          
+          // Lock to landscape orientation if supported
+          if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape').catch(() => {
+              console.log('Orientation lock not supported');
+            });
+          }
           
           // If in fullscreen, exit it first
           if (document.fullscreenElement) {
