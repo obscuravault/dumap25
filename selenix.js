@@ -172,7 +172,7 @@
     return span;
   }
 
-  function formatCount(n){ return `${n} Day${n===1?'':'s'}`; }
+  function formatCount(n){ return `${n} Part${n===1?'':'s'}`; }
 
   // Expose as a global helper for page scripts
   window.selenix = {
@@ -260,6 +260,7 @@
    
 
 })();
+
 
 
 
