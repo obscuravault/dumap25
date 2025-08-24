@@ -130,6 +130,26 @@
       .player-shell:hover .controls {
         opacity: 1;
       }
+      
+      /* Hide landscape button on desktop, show on mobile */
+      #lsBtn {
+        display: inline-flex;
+      }
+      
+      /* Hide regular fullscreen button on mobile */
+      #fsBtn {
+        display: none;
+      }
+      
+      /* Hide volume controls in normal mobile view */
+      .volume-control {
+        display: none;
+      }
+      
+      /* Show volume controls in landscape fullscreen on mobile */
+      .landscape-fullscreen .volume-control {
+        display: flex;
+      }
     }
     
     .row {
@@ -556,7 +576,7 @@
               <span>PiP</span>
             </button>
 
-            <button class="icon" id="lsBtn" aria-label="Landscape Fullscreen">
+            <button class="icon" id="lsBtn" aria-label="Landscape Fullscreen" style="display: none;">
               <i class='bx bx-expand-horizontal'></i>
               <span>Landscape</span>
             </button>
@@ -745,6 +765,15 @@
     const antiIframe = $('#antiIframe');
     const videoElement = $('#ytPlayer');
 
+    // Show/hide buttons based on device
+    if (window.innerWidth <= 768) {
+      lsBtn.style.display = 'inline-flex';
+      fsBtn.style.display = 'none';
+    } else {
+      lsBtn.style.display = 'none';
+      fsBtn.style.display = 'inline-flex';
+    }
+
     // Play/Pause
     playBtn.addEventListener('click', ()=>{
       if (!state.player) return;
@@ -857,28 +886,33 @@
 
     // Landscape Fullscreen
     lsBtn.addEventListener('click', ()=>{
-      if (state.isLandscapeFullscreen) {
-        // Exit landscape fullscreen
-        shell.classList.remove('landscape-fullscreen');
-        document.body.style.overflow = '';
-        lsBtn.innerHTML = '<i class="bx bx-expand-horizontal"></i><span>Landscape</span>';
-        state.isLandscapeFullscreen = false;
-      } else {
-        // Enter landscape fullscreen
-        shell.classList.add('landscape-fullscreen');
-        document.body.style.overflow = 'hidden';
-        lsBtn.innerHTML = '<i class="bx bx-collapse-horizontal"></i><span>Exit</span>';
-        state.isLandscapeFullscreen = true;
-        
-        // If in fullscreen, exit it first
-        if (document.fullscreenElement) {
-          if (document.exitFullscreen) document.exitFullscreen();
+      if (window.innerWidth <= 768) { // Only allow on mobile
+        if (state.isLandscapeFullscreen) {
+          // Exit landscape fullscreen
+          shell.classList.remove('landscape-fullscreen');
+          document.body.style.overflow = '';
+          lsBtn.innerHTML = '<i class="bx bx-expand-horizontal"></i><span>Landscape</span>';
+          state.isLandscapeFullscreen = false;
+        } else {
+          // Enter landscape fullscreen
+          shell.classList.add('landscape-fullscreen');
+          document.body.style.overflow = 'hidden';
+          lsBtn.innerHTML = '<i class="bx bx-collapse-horizontal"></i><span>Exit</span>';
+          state.isLandscapeFullscreen = true;
+          
+          // If in fullscreen, exit it first
+          if (document.fullscreenElement) {
+            if (document.exitFullscreen) document.exitFullscreen();
+          }
         }
       }
     });
 
     // Fullscreen
     fsBtn.addEventListener('click', ()=>{
+      // Don't allow regular fullscreen on mobile
+      if (window.innerWidth <= 768) return;
+      
       // If in landscape mode, exit it first
       if (state.isLandscapeFullscreen) {
         shell.classList.remove('landscape-fullscreen');
