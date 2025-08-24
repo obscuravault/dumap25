@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="selenix.css">
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 
+  <!-- Minimal styles for custom controls & overlays -->
   <style>
     .player-wrap { max-width: 1100px; margin: 0 auto; }
     .player-shell {
@@ -20,25 +21,29 @@
       user-select: none;
       -webkit-user-select: none;
     }
-    /*Watermark Image*/
-    .ov-watermark1 {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      pointer-events: none;
-      opacity: 0.18;
-      mix-blend-mode: difference;
-      width: 100px;
-      height: 100px;
-      overflow: hidden;
-    }
-    .ov-watermark1 img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      filter: invert(1);
-      opacity: 0.6;
-    }
+/*Watermark Image*/
+.ov-watermark1 {
+  position: absolute;
+  bottom: 10px;  /* distance from bottom */
+  right: 10px;   /* distance from right */
+  pointer-events: none;
+  opacity: 0.18; /* overall transparency */
+  mix-blend-mode: difference; /* adapts to light/dark backgrounds */
+  width: 100px;  /* set square size */
+  height: 100px; /* same as width */
+  overflow: hidden; /* ensures image stays within the square */
+}
+
+.ov-watermark1 img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* crops image to fill square */
+  filter: invert(1); /* inverts colors: white → black */
+  opacity: 0.6;      /* fine-tune visibility */
+}
+
+    
+ /* Watermark */
     .ov-watermark {
       position: absolute;
       inset: 0;
@@ -59,10 +64,23 @@
           rgba(0,0,255,.15) 40px 80px
         );
     }
-    .ov-watermark span { text-shadow: 0 1px 0 rgba(0,0,0,.8); }
-    .yt-host, .yt-iframe { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .ov-watermark span {
+      text-shadow: 0 1px 0 rgba(0,0,0,.8);
+    }
+    /* The actual YouTube host container */
+    .yt-host, .yt-iframe {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+    }
     .yt-iframe { border: 0; }
-    .anti-iframe { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 4; background: transparent; }
+
+    /* Transparent layer that blocks direct interaction with iframe */
+    .anti-iframe {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      z-index: 4;
+      background: transparent;
+    }
+
+    /* Controls bar */
     .controls {
       position: absolute;
       left: 0; right: 0; bottom: 0;
@@ -72,7 +90,10 @@
       padding: 10px 12px;
       background: linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,.0));
     }
-    .row { display: flex; align-items: center; gap: 10px; }
+    .row {
+      display: flex; align-items: center; gap: 10px;
+    }
+    
     .btn1, .icon {
       appearance: none; border: 0; outline: 0;
       background: rgba(0,0,0,1);
@@ -81,13 +102,11 @@
       display: inline-flex; align-items: center; gap: 8px;
       backdrop-filter: blur(6px);
     }
-    .btn1:hover, .icon:hover {
-      background: rgba(255,255,255,.18);
-      color: #000;
-      padding: 8px 12px;
-      border-radius: 12px;
-    }
-    .btn1:active, .icon:active { transform: translateY(1px); }
+    .btn1:hover, .icon:hover { background: rgba(255,255,255,.18); 
+                              color: #000; padding: 8px 12px; border-radius: 12px;
+                             }
+    .btn1:active, .icon:active { transform: translateY(1px); }    
+
     .btn, .icon {
       appearance: none; border: 0; outline: 0;
       background: rgba(255,255,255,.12);
@@ -98,13 +117,11 @@
     }
     .btn:hover, .icon:hover { background: rgba(255,255,255,.18); }
     .btn:active, .icon:active { transform: translateY(1px); }
+
+    /* Time + seek */
     .time {
-      color: #fff;
-      font-variant-numeric: tabular-nums;
-      font-size: 13px;
-      opacity: .9;
-      min-width: 110px;
-      text-align: center;
+      color: #fff; font-variant-numeric: tabular-nums; font-size: 13px; opacity: .9;
+      min-width: 110px; text-align: center;
     }
     .seek {
       flex: 1 1 auto;
@@ -125,43 +142,428 @@
       width: 14px; height: 14px; border-radius: 50%;
       background: #fff; cursor: pointer; box-shadow: 0 0 0 3px rgba(0,0,0,.2);
     }
+
+    /* Right-side controls */
     .right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
     .speed {
       background: rgba(255,255,255,.12);
       color: #fff; border-radius: 12px; padding: 8px 10px; border: 0;
     }
-    img, .player-shell, .anti-iframe { -webkit-user-drag: none; }
 
-    /* === Mobile Responsiveness Additions === */
-    @media (max-width: 992px) {
-      .player-wrap { padding: 0 12px; }
-      .controls { flex-wrap: wrap; }
-      .seek { flex: 1 1 100%; }
-    }
-    @media (max-width: 768px) {
-      h2#playerTitle { font-size: 18px; text-align: center; }
-      .controls { display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 8px; }
-      .row { flex-direction: column; width: 100%; gap: 6px; }
-      .btn1, .btn, .icon { width: 100%; justify-content: center; font-size: 14px; padding: 10px; }
-      .seek { width: 100%; }
-      .time { min-width: auto; text-align: center; }
-    }
-    @media (max-width: 480px) {
-      .ov-watermark1 { width: 60px; height: 60px; }
-      .ov-watermark { font-size: 12px; letter-spacing: 2px; }
-      h2#playerTitle { font-size: 16px; }
-      .btn1, .btn, .icon { font-size: 12px; padding: 8px; }
-    }
+    /* Prevent image/element dragging */
+    img, .player-shell, .anti-iframe { -webkit-user-drag: none; }
   </style>
 </head>
 <body>
-  <!-- (KEEP THE SAME HEADER, BODY, FOOTER, AND JS AS IN YOUR ORIGINAL CODE) -->
-  <!-- Nothing else changes except the added CSS above -->
+  <!-- Header -->
+  <header class="header">
+    <div class="container nav">
+      <a class="brand" href="index.html">
+        <img alt="selenix logo">
+        <div class="logo-text">Obscura Vault</div>
+      </a>
+      <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="index.html#about">About</a>
+        <a href="lessons.html">Lessons</a>
+        <a href="index.html#contact">Contact</a>
+        <button class="icon-btn" data-open-search aria-label="Search">
+          <img class="search-icon" src="https://cdn-icons-png.flaticon.com/128/3686/3686896.png" alt="Search" loading="lazy" decoding="async">
+        </button>
+      </nav>
+      <button class="icon-btn hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+    <div class="mobile-drawer">
+      <a href="index.html">Home</a>
+      <a href="index.html#about">About</a>
+      <a href="lessons.html">Lessons</a>
+      <a href="index.html#contact">Contact</a>
+      <a href="#" data-open-search>Search</a>
+    </div>
+    <div class="mobile-searchbar">
+      <form id="mobileSearchForm">
+        <input id="mobileSearch" placeholder="Search lessons...">
+        <button type="submit">Search</button>
+      </form>
+    </div>
+  </header>
+
+  <!-- Search overlay -->
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-card">
+      <h3>Search lessons</h3>
+      <div class="search-row">
+        <input id="globalSearchInput" placeholder="Type keyword...">
+        <button id="globalSearchGo">Search</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container player-wrap">
+    <div class="back-row">
+      <button data-back>← Back</button>
+    </div>
+
+    <h2 id="playerTitle">Loading...</h2>
+
+    <!-- Custom Player -->
+    <div class="player-shell" id="playerShell" aria-label="video player">
+      <!-- Host for YouTube iframe -->
+      <div class="yt-host" id="ytHost">
+        <div id="ytPlayer" class="yt-iframe" title="YouTube player"></div>
+      </div>
+
+      <!-- Transparent blocker over the iframe (prevents context menu & direct clicks) -->
+      <div class="anti-iframe" id="antiIframe" oncontextmenu="return false;"></div>
+
+      <!-- Watermark -->
+      <div class="ov-watermark" aria-hidden="true"><span>Obscura Vault</span></div>
+      <div class="ov-watermark1">
+  <img src="http://lumosbio.infy.uk/wp-content/uploads/2025/08/Imaf.png" alt="Watermark">
+    </div>
+
+
+      <!-- Custom Controls -->
+      <div class="controls" id="controls">
+        <div class="row">
+          <button class="icon" id="playPause" aria-label="Play/Pause">
+            <i class='bx bx-play' id="playIcon"></i>
+            <span id="playLabel">Play</span>
+          </button>
+
+          <div class="seek">
+            <span class="time" id="timeLeft">00:00</span>
+            <input type="range" id="seekBar" min="0" max="1000" step="1" value="0" aria-label="Seek">
+            <span class="time" id="timeRight">00:00</span>
+          </div>
+
+          <div class="right">
+            <select class="speed" id="speed" aria-label="Playback speed">
+              <option value="0.5">0.5×</option>
+              <option value="0.75">0.75×</option>
+              <option value="1" selected>1×</option>
+              <option value="1.25">1.25×</option>
+              <option value="1.5">1.5×</option>
+              <option value="1.75">1.75×</option>
+              <option value="2">2×</option>
+            </select>
+
+            <button class="icon" id="fsBtn" aria-label="Fullscreen">
+              <i class='bx bx-fullscreen'></i>
+              <span>Full</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="player-cta" style="margin-top:10px">
+      <a class="btn1" id="telegramBtn" target="_blank">Terms and Conditions</a>
+      <a class="btn1 secondary" id="resourceBtn" target="_blank">Resource</a>
+    </div>
+
+    <div class="bar" style="margin:20px 0 16px"></div>
+    <h3>Other parts in this lesson</h3>
+    <div class="cards" id="relatedCards"></div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-top-art"></div>
+    <div class="container">
+      <div class="footer-inner" style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;text-align:center;gap:18px;padding-top:10px;padding-bottom:50px">
+        <div class="footer-social" style="display:flex;gap:18px">
+          <a href="https://t.me/ObscuraVaulfOfficial" target="_blank" aria-label="Telegram" title="Telegram"
+             style="width:44px;height:44px;border-radius:50%;background:#fff;color:#111;display:inline-flex;align-items:center;justify-content:center;font-size:26px;text-decoration:none">
+            <i class='bx bxl-telegram'></i>
+          </a>
+          <a href="https://www.youtube.com/@ObscuraVault-Official" target="_blank" aria-label="YouTube" title="YouTube"
+             style="width:44px;height:44px;border-radius:50%;background:#fff;color:#111;display:inline-flex;align-items:center;justify-content:center;font-size:26px;text-decoration:none">
+            <i class='bx bxl-youtube'></i>
+          </a>
+        </div>
+        <nav class="footer-menu" style="display:flex;gap:26px;flex-wrap:wrap;justify-content:center">
+          <a href="index.html" style="color:#eaeaea;text-decoration:none">Home</a>
+          <a href="index.html#about" style="color:#eaeaea;text-decoration:none">About</a>
+          <a href="lessons.html" style="color:#eaeaea;text-decoration:none">Lessons</a>
+          <a href="index.html#contact" style="color:#eaeaea;text-decoration:none">Contact</a>
+        </nav>
+        <div class="footer-copy" style="font-size:13px;color:#bdbdbd">© 2025 Obscura Vault. All Rights Reserved</div>
+      </div>
+    </div>
+  </footer>
 
   <!-- Shared helpers -->
   <script src="selenix.js"></script>
+
+  <!-- YouTube IFrame API (do not async-defer when you need onYouTubeIframeAPIReady) -->
   <script>
-    // (KEEP YOUR ORIGINAL JS CODE FROM YOUR VERSION HERE)
+    // Load the YouTube API once (idempotent)
+    (function ensureYTAPI(){
+      if (window.YT && window.YT.Player) return;
+      if (document.getElementById('yt-iframe-api')) return;
+      const s = document.createElement('script');
+      s.src = "https://www.youtube.com/iframe_api";
+      s.id = "yt-iframe-api";
+      document.head.appendChild(s);
+    })();
+  </script>
+
+  <!-- Page script -->
+  <script>
+  // ---- State ----
+  const state = { items:[], current:null, group:null, subjects:[], colors:{}, player:null, apiReady:false, tick:null, seeking:false };
+
+  // Basic route helpers
+  function getRID(){ return new URLSearchParams(location.search).get('rid'); }
+
+  // Extract a YouTube videoId from common URL formats
+  function extractYouTubeID(urlOrId){
+    if (!urlOrId) return null;
+    // already an 11-char ID
+    if (/^[a-zA-Z0-9_-]{11}$/.test(urlOrId)) return urlOrId;
+
+    try {
+      const u = new URL(urlOrId);
+      if (u.hostname.includes('youtu.be')) return u.pathname.slice(1);
+      if (u.searchParams.get('v')) return u.searchParams.get('v');
+      // embed or short formats
+      const m = u.pathname.match(/\/(embed|shorts|live)\/([a-zA-Z0-9_-]{11})/);
+      if (m) return m[2];
+    } catch {}
+    // fallback: try to pull last 11 id-like chars
+    const m2 = String(urlOrId).match(/([a-zA-Z0-9_-]{11})(?:[^a-zA-Z0-9_-]|$)/);
+    return m2 ? m2[1] : null;
+  }
+
+  // Format time as mm:ss or hh:mm:ss
+  function fmt(seconds){
+    seconds = Math.max(0, Math.floor(seconds||0));
+    const h = Math.floor(seconds/3600);
+    const m = Math.floor((seconds%3600)/60);
+    const s = seconds%60;
+    if (h>0) return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+
+  // UI node refs
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => document.querySelectorAll(sel);
+
+  function wireControls(){
+    const playBtn = $('#playPause');
+    const playIcon = $('#playIcon');
+    const playLabel = $('#playLabel');
+    const seekBar = $('#seekBar');
+    const tL = $('#timeLeft');
+    const tR = $('#timeRight');
+    const speed = $('#speed');
+    const fsBtn = $('#fsBtn');
+    const shell = $('#playerShell');
+
+    // Play/Pause
+    playBtn.addEventListener('click', ()=>{
+      if (!state.player) return;
+      const st = state.player.getPlayerState();
+      if (st === YT.PlayerState.PLAYING) {
+        state.player.pauseVideo();
+      } else {
+        state.player.playVideo();
+      }
+    });
+
+    // Seek
+    seekBar.addEventListener('input', ()=>{
+      state.seeking = true;
+      const dur = state.player ? (state.player.getDuration()||0) : 0;
+      const target = (seekBar.value / 1000) * dur;
+      tL.textContent = fmt(target);
+    });
+    seekBar.addEventListener('change', ()=>{
+      const dur = state.player ? (state.player.getDuration()||0) : 0;
+      const target = (seekBar.value / 1000) * dur;
+      if (state.player && Number.isFinite(target)) {
+        state.player.seekTo(target, true);
+      }
+      state.seeking = false;
+    });
+
+    // Speed
+    speed.addEventListener('change', ()=>{
+      if (!state.player) return;
+      const rate = parseFloat(speed.value);
+      state.player.setPlaybackRate(rate);
+    });
+
+    // Fullscreen
+    fsBtn.addEventListener('click', ()=>{
+      const el = shell;
+      if (!document.fullscreenElement) {
+        if (el.requestFullscreen) el.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    });
+
+    // Tick updater
+    if (state.tick) clearInterval(state.tick);
+    state.tick = setInterval(()=>{
+      if (!state.player) return;
+      const st = state.player.getPlayerState?.();
+      const cur = state.player.getCurrentTime?.() || 0;
+      const dur = state.player.getDuration?.() || 0;
+
+      if (Number.isFinite(cur) && Number.isFinite(dur) && dur>0 && !state.seeking){
+        seekBar.value = Math.round((cur / dur) * 1000);
+        tL.textContent = fmt(cur);
+        tR.textContent = fmt(dur);
+      }
+
+      // icon/label
+      if (st === YT.PlayerState.PLAYING) {
+        playIcon.className = 'bx bx-pause';
+        playLabel.textContent = 'Pause';
+      } else {
+        playIcon.className = 'bx bx-play';
+        playLabel.textContent = 'Play';
+      }
+    }, 200);
+  }
+
+  // Initialize YT Player for the current item
+  function initYT(videoId){
+    const host = document.getElementById('ytPlayer');
+    host.innerHTML = ''; // ensure clean
+
+    state.player = new YT.Player('ytPlayer', {
+      videoId,
+      playerVars: {
+        autoplay: 1,
+        controls: 0,
+        disablekb: 1,
+        modestbranding: 1,
+        rel: 0,
+        fs: 0,
+        playsinline: 1,
+        iv_load_policy: 3
+      },
+      events: {
+        onReady: (e) => {
+          // populate available rates into the menu
+          const rates = state.player.getAvailablePlaybackRates?.() || [0.5,0.75,1,1.25,1.5,1.75,2];
+          const speedSel = $('#speed');
+          const currentOptions = Array.from(speedSel.options).map(o=>parseFloat(o.value));
+          // refresh only if differs
+          if (JSON.stringify(currentOptions) !== JSON.stringify(rates)) {
+            speedSel.innerHTML = rates.map(r=>`<option value="${r}" ${r===1?'selected':''}>${r}×</option>`).join('');
+          }
+          wireControls();
+        }
+      }
+    });
+  }
+
+  // Render page
+  function renderPlayer(){
+    const t = document.getElementById('playerTitle');
+    if (!state.current){ t.textContent='Not found'; return; }
+
+    t.textContent = `${state.current.lesson} — ${state.current.partTitle}`;
+
+    // Buttons
+    const tg = document.getElementById('telegramBtn');
+    const rs = document.getElementById('resourceBtn');
+    tg.href = state.current.telegram || '#';
+    rs.href = state.current.resource || '#';
+
+    // Related parts
+    const rel = document.getElementById('relatedCards');
+    rel.innerHTML = '';
+    if (state.group){
+      state.group.parts.forEach(p=>{
+        const card = document.createElement('div'); card.className='card';
+        const img = document.createElement('img'); img.src = p.thumb || ''; img.alt = p.partTitle || 'thumbnail';
+        card.appendChild(img);
+        const body = document.createElement('div'); body.className='card-body';
+        const tag = document.createElement('div'); tag.className='tag-row';
+        const dot = document.createElement('span'); dot.className='dot'; dot.style.setProperty('--subject-color', state.colors[state.group.subject]||'#000');
+        tag.appendChild(dot);
+        tag.appendChild(document.createTextNode(`${state.group.subject}`));
+        const h4 = document.createElement('h4'); h4.textContent = p.partTitle || 'Part';
+        const desc = document.createElement('p'); desc.textContent = p.description || '';
+        const actions = document.createElement('div'); actions.className='card-actions';
+        const open = document.createElement('button'); open.className='btn1'; open.textContent = (p.id === state.current.id) ? 'Now Playing' : 'Play';
+        open.disabled = (p.id === state.current.id);
+        open.addEventListener('click', ()=>window.location.href=`player.html?rid=${encodeURIComponent(p.id)}`);
+        actions.appendChild(open);
+        body.appendChild(tag); body.appendChild(h4); body.appendChild(desc); body.appendChild(actions);
+        card.appendChild(body);
+        rel.appendChild(card);
+      });
+    }
+  }
+
+  // Boot
+  async function boot(){
+    selenix.initHeader();
+
+    // global right-click/drag disable (best-effort)
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('dragstart', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
+      // Block common "save/open" combos within the page context
+      if ((e.ctrlKey || e.metaKey) && ['s','u','p'].includes(e.key.toLowerCase())) e.preventDefault();
+    });
+
+    try {
+      state.items = await selenix.fetchSheet();
+      state.subjects = selenix.uniqueSubjects(state.items);
+      state.colors = selenix.subjectColorMap(state.subjects);
+      const rid = getRID();
+      state.current = state.items.find(x=>x.id===rid);
+      if (state.current){
+        const groups = selenix.groupByLesson(state.items);
+        state.group = groups.find(g=>g.subject===state.current.subject && g.lesson===state.current.lesson);
+      }
+      renderPlayer();
+
+      // Wait YouTube API then init
+     function startIfReady(){
+    if (window.YT && window.YT.Player){
+        let vid = extractYouTubeID(state.current?.youtube);
+        const playerTitle = document.getElementById('playerTitle');
+
+        if (!vid) {
+            // Set default video ID
+            vid = '9i_UWs0tgJw'; // Replace with your default video ID
+
+            // Show message to user
+            playerTitle.textContent = 'Original video is not uploaded yet. Please wait until the video uploading is Completed.';
+            console.warn('No video found. Loading default video.');
+        } else {
+            // Show the actual video title if available
+            playerTitle.textContent = `${state.current.lesson} — ${state.current.partTitle}`;
+        }
+
+        initYT(vid);
+
+    } else {
+        setTimeout(startIfReady, 80);
+    }
+}
+startIfReady();
+
+    } catch (e){
+      console.error(e);
+      document.getElementById('playerTitle').textContent = 'Failed to load player.';
+    }
+  }
+  // YouTube API callback is required globally; we chain to boot if needed.
+  function onYouTubeIframeAPIReady(){
+    // If boot already ran, we’ll init from there; otherwise boot will call later.
+  }
+
+  boot();
   </script>
 </body>
 </html>
