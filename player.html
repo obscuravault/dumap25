@@ -358,9 +358,36 @@
         gap: 15px;
       }
     }
+    
+    /* No JavaScript warning */
+    .no-js-message {
+      display: none;
+      text-align: center;
+      padding: 2rem;
+      background: #f8d7da;
+      color: #721c24;
+      border-radius: 8px;
+      margin: 2rem 0;
+    }
+    
+    .no-js .no-js-message {
+      display: block;
+    }
+    
+    .no-js .player-shell,
+    .no-js .player-cta,
+    .no-js .cards {
+      display: none;
+    }
   </style>
 </head>
-<body>
+<body class="no-js">
+  <!-- No JavaScript warning -->
+  <div class="no-js-message">
+    <h2>JavaScript Required</h2>
+    <p>This page requires JavaScript to function properly. Please enable JavaScript in your browser settings.</p>
+  </div>
+
   <!-- Header -->
   <header class="header">
     <div class="container nav">
@@ -453,6 +480,11 @@
               <option value="2">2×</option>
             </select>
 
+            <button class="icon" id="pipBtn" aria-label="Picture in Picture">
+              <i class='bx bx-window'></i>
+              <span>PiP</span>
+            </button>
+
             <button class="icon" id="fsBtn" aria-label="Fullscreen">
               <i class='bx bx-fullscreen'></i>
               <span>Full</span>
@@ -516,6 +548,70 @@
 
   <!-- Page script -->
   <script>
+  // Remove no-js class if JavaScript is enabled
+  document.body.classList.remove('no-js');
+  
+  // ---- Security Measures ----
+  // Disable right-click context menu
+  document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    return false;
+  });
+  
+  // Disable text selection
+  document.addEventListener('selectstart', function(e) {
+    e.preventDefault();
+    return false;
+  });
+  
+  // Disable drag and drop
+  document.addEventListener('dragstart', function(e) {
+    e.preventDefault();
+    return false;
+  });
+  
+  // Disable developer tools (F12, Ctrl+Shift+I, etc.)
+  document.addEventListener('keydown', function(e) {
+    // Disable F12
+    if (e.key === 'F12') {
+      e.preventDefault();
+      return false;
+    }
+    
+    // Disable Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C, Ctrl+U
+    if (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) {
+      e.preventDefault();
+      return false;
+    }
+    
+    // Disable Ctrl+U (view source)
+    if (e.ctrlKey && e.key === 'u') {
+      e.preventDefault();
+      return false;
+    }
+    
+    // Block common "save/open" combos
+    if ((e.ctrlKey || e.metaKey) && ['s','u','p','o'].includes(e.key.toLowerCase())) {
+      e.preventDefault();
+      return false;
+    }
+  });
+  
+  // Detect if dev tools are open (basic detection)
+  setInterval(function() {
+    const widthThreshold = window.outerWidth - window.innerWidth > 160;
+    const heightThreshold = window.outerHeight - window.innerHeight > 160;
+    const orientation = widthThreshold ? 'vertical' : 'horizontal';
+    
+    if (!(heightThreshold && widthThreshold) &&
+        ((window.Firebug && window.Firebug.chrome && window.Firebug.chrome.isInitialized) || 
+         widthThreshold || heightThreshold)) {
+      // Dev tools detected - redirect or show warning
+      document.body.innerHTML = '<div style="padding: 20px; text-align: center;"><h2>Developer Tools Detected</h2><p>Please close developer tools to continue using this site.</p></div>';
+      window.stop();
+    }
+  }, 1000);
+  
   // ---- State ----
   const state = { items:[], current:null, group:null, subjects:[], colors:{}, player:null, apiReady:false, tick:null, seeking:false };
 
@@ -563,9 +659,11 @@
     const tL = $('#timeLeft');
     const tR = $('#timeRight');
     const speed = $('#speed');
+    const pipBtn = $('#pipBtn');
     const fsBtn = $('#fsBtn');
     const shell = $('#playerShell');
     const antiIframe = $('#antiIframe');
+    const videoElement = $('#ytPlayer');
 
     // Play/Pause
     playBtn.addEventListener('click', ()=>{
@@ -631,6 +729,23 @@
       state.player.setPlaybackRate(rate);
     });
 
+    // Picture in Picture
+    pipBtn.addEventListener('click', async ()=>{
+      try {
+        if (document.pictureInPictureElement) {
+          await document.exitPictureInPicture();
+        } else if (document.pictureInPictureEnabled) {
+          // For YouTube iframe, we need to request PiP on the iframe
+          const iframe = $('#ytPlayer');
+          if (iframe && iframe.requestPictureInPicture) {
+            await iframe.requestPictureInPicture();
+          }
+        }
+      } catch (error) {
+        console.error('Picture-in-Picture failed:', error);
+      }
+    });
+
     // Fullscreen
     fsBtn.addEventListener('click', ()=>{
       const el = shell;
@@ -685,7 +800,8 @@
         rel: 0,
         fs: 0,
         playsinline: 1,
-        iv_load_policy: 3
+        iv_load_policy: 3,
+        enablejsapi: 1
       },
       events: {
         onReady: (e) => {
@@ -746,14 +862,6 @@
   // Boot
   async function boot(){
     selenix.initHeader();
-
-    // global right-click/drag disable (best-effort)
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.addEventListener('dragstart', e => e.preventDefault());
-    document.addEventListener('keydown', e => {
-      // Block common "save/open" combos within the page context
-      if ((e.ctrlKey || e.metaKey) && ['s','u','p'].includes(e.key.toLowerCase())) e.preventDefault();
-    });
 
     // Back button functionality
     document.querySelector('[data-back]').addEventListener('click', () => {
