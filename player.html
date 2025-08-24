@@ -845,7 +845,7 @@
         const dot = document.createElement('span'); dot.className='dot'; dot.style.setProperty('--subject-color', state.colors[state.group.subject]||'#000');
         tag.appendChild(dot);
         tag.appendChild(document.createTextNode(`${state.group.subject}`));
-        const h4 = document.createElement('h4'); h4.textContent = p.partTitle || 'Part';
+        const h4 = document.createElement('h4'); h4.textContent = p.partTitle || 'Day';
         const desc = document.createElement('p'); desc.textContent = p.description || '';
         const actions = document.createElement('div'); actions.className='card-actions';
         const open = document.createElement('button'); open.className='btn1'; open.textContent = (p.id === state.current.id) ? 'Now Playing' : 'Play';
@@ -921,4 +921,5 @@
   </script>
 </body>
 </html>
+
 
