@@ -1,27 +1,145 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <title>Obscura Vault - Courses</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="selenix.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-
-  <!-- Minimal styles for custom controls & overlays -->
   <style>
-    .player-wrap { 
-      max-width: 1100px; 
-      margin: 0 auto; 
+    /* Base styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #fff;
+      line-height: 1.6;
+      min-height: 100vh;
+      padding-bottom: 40px;
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    
+    /* Header */
+    .header {
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(10px);
+      padding: 15px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.5rem;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 25px;
+      align-items: center;
+    }
+    
+    .nav-links a {
+      color: #e0e0e0;
+      text-decoration: none;
+      font-size: 1rem;
+      transition: color 0.3s;
+    }
+    
+    .nav-links a:hover {
+      color: #fff;
+    }
+    
+    .icon-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
+    
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .hamburger span {
+      width: 25px;
+      height: 3px;
+      background: #fff;
+      border-radius: 2px;
+    }
+    
+    /* Player section */
+    .player-wrap {
+      max-width: 1100px;
+      margin: 40px auto 0;
       padding: 0 15px;
     }
     
+    .back-row {
+      margin-bottom: 20px;
+    }
+    
+    .back-row button {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.3s;
+    }
+    
+    .back-row button:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    h2 {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    h3 {
+      font-size: 1.5rem;
+      margin: 30px 0 20px;
+      text-align: center;
+    }
+    
+    /* Player shell */
     .player-shell {
       position: relative;
       width: 100%;
       background: #000;
       border-radius: 14px;
       overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0,0,0,.35);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
       aspect-ratio: 16/9;
       user-select: none;
       -webkit-user-select: none;
@@ -35,28 +153,28 @@
       }
     }
     
-    /*Watermark Image*/
+    /* Watermark Image */
     .ov-watermark1 {
       position: absolute;
-      bottom: 10px;  /* distance from bottom */
-      right: 10px;   /* distance from right */
+      bottom: 10px;
+      right: 10px;
       pointer-events: none;
-      opacity: 0.18; /* overall transparency */
-      mix-blend-mode: difference; /* adapts to light/dark backgrounds */
-      width: 100px;  /* set square size */
-      height: 100px; /* same as width */
-      overflow: hidden; /* ensures image stays within the square */
+      opacity: 0.18;
+      mix-blend-mode: difference;
+      width: 100px;
+      height: 100px;
+      overflow: hidden;
       z-index: 3;
     }
-
+    
     .ov-watermark1 img {
       width: 100%;
       height: 100%;
-      object-fit: cover; /* crops image to fill square */
-      filter: invert(1); /* inverts colors: white → black */
-      opacity: 0.6;      /* fine-tune visibility */
+      object-fit: cover;
+      filter: invert(1);
+      opacity: 0.6;
     }
-
+    
     /* Watermark */
     .ov-watermark {
       position: absolute;
@@ -71,52 +189,47 @@
       text-transform: uppercase;
       letter-spacing: 4px;
       font-size: clamp(16px, 5vw, 42px);
-      background-image:
-        repeating-linear-gradient(
-          -30deg,
-          rgba(0,0,255,.12) 0 40px,
-          rgba(0,0,255,.15) 40px 80px
-        );
+      background-image: repeating-linear-gradient(-30deg, rgba(0, 0, 255, .12) 0 40px, rgba(0, 0, 255, .15) 40px 80px);
       z-index: 3;
     }
     
     .ov-watermark span {
-      text-shadow: 0 1px 0 rgba(0,0,0,.8);
+      text-shadow: 0 1px 0 rgba(0, 0, 0, .8);
     }
     
     /* The actual YouTube host container */
     .yt-host, .yt-iframe {
-      position: absolute; 
-      inset: 0; 
-      width: 100%; 
+      position: absolute;
+      inset: 0;
+      width: 100%;
       height: 100%;
     }
     
-    .yt-iframe { 
-      border: 0; 
+    .yt-iframe {
+      border: 0;
     }
-
+    
     /* Transparent layer that blocks direct interaction with iframe */
     .anti-iframe {
-      position: absolute; 
-      inset: 0; 
-      width: 100%; 
+      position: absolute;
+      inset: 0;
+      width: 100%;
       height: 100%;
       z-index: 4;
       background: transparent;
     }
-
+    
     /* Controls bar */
     .controls {
       position: absolute;
-      left: 0; 
-      right: 0; 
+      left: 0;
+      right: 0;
       bottom: 0;
       z-index: 5;
       display: grid;
       gap: 8px;
       padding: 10px 12px;
-      background: linear-gradient(to top, rgba(0,0,0,.75), rgba(0,0,0,.0));
+      background: linear-gradient(to top, rgba(0, 0, 0, .75), rgba(0, 0, 0, .0));
       transition: opacity 0.3s ease;
     }
     
@@ -133,110 +246,110 @@
     }
     
     .row {
-      display: flex; 
-      align-items: center; 
+      display: flex;
+      align-items: center;
       gap: 10px;
     }
     
     .btn1, .icon {
-      appearance: none; 
-      border: 0; 
+      appearance: none;
+      border: 0;
       outline: 0;
-      background: rgba(0,0,0,1);
-      color: #fff; 
-      padding: 8px 12px; 
+      background: rgba(0, 0, 0, 1);
+      color: #fff;
+      padding: 8px 12px;
       border-radius: 12px;
-      font-size: 14px; 
-      line-height: 1; 
+      font-size: 14px;
+      line-height: 1;
       cursor: pointer;
-      display: inline-flex; 
-      align-items: center; 
+      display: inline-flex;
+      align-items: center;
       gap: 8px;
       backdrop-filter: blur(6px);
     }
     
-    .btn1:hover, .icon:hover { 
-      background: rgba(255,255,255,.18); 
-      color: #000; 
-      padding: 8px 12px; 
+    .btn1:hover, .icon:hover {
+      background: rgba(255, 255, 255, .18);
+      color: #000;
+      padding: 8px 12px;
       border-radius: 12px;
     }
     
-    .btn1:active, .icon:active { 
-      transform: translateY(1px); 
-    }    
-
+    .btn1:active, .icon:active {
+      transform: translateY(1px);
+    }
+    
     .btn, .icon {
-      appearance: none; 
-      border: 0; 
+      appearance: none;
+      border: 0;
       outline: 0;
-      background: rgba(255,255,255,.12);
-      color: #fff; 
-      padding: 8px 12px; 
+      background: rgba(255, 255, 255, .12);
+      color: #fff;
+      padding: 8px 12px;
       border-radius: 12px;
-      font-size: 14px; 
-      line-height: 1; 
+      font-size: 14px;
+      line-height: 1;
       cursor: pointer;
-      display: inline-flex; 
-      align-items: center; 
+      display: inline-flex;
+      align-items: center;
       gap: 8px;
       backdrop-filter: blur(6px);
     }
     
-    .btn:hover, .icon:hover { 
-      background: rgba(255,255,255,.18); 
+    .btn:hover, .icon:hover {
+      background: rgba(255, 255, 255, .18);
     }
     
-    .btn:active, .icon:active { 
-      transform: translateY(1px); 
+    .btn:active, .icon:active {
+      transform: translateY(1px);
     }
-
+    
     /* Time + seek */
     .time {
-      color: #fff; 
-      font-variant-numeric: tabular-nums; 
-      font-size: 13px; 
+      color: #fff;
+      font-variant-numeric: tabular-nums;
+      font-size: 13px;
       opacity: .9;
-      min-width: 110px; 
+      min-width: 110px;
       text-align: center;
     }
     
     .seek {
       flex: 1 1 auto;
-      display: flex; 
-      align-items: center; 
+      display: flex;
+      align-items: center;
       gap: 10px;
       min-width: 120px;
     }
     
     .seek input[type="range"] {
-      -webkit-appearance: none; 
-      appearance: none; 
+      -webkit-appearance: none;
+      appearance: none;
       width: 100%;
-      height: 6px; 
+      height: 6px;
       border-radius: 999px;
-      background: rgba(255,255,255,.3); 
+      background: rgba(255, 255, 255, .3);
       outline: none;
     }
     
     .seek input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none; 
+      -webkit-appearance: none;
       appearance: none;
-      width: 14px; 
-      height: 14px; 
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
-      background: #fff; 
-      cursor: pointer; 
-      box-shadow: 0 0 0 3px rgba(0,0,0,.2);
+      background: #fff;
+      cursor: pointer;
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, .2);
     }
     
     .seek input[type="range"]::-moz-range-thumb {
-      width: 14px; 
-      height: 14px; 
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
-      background: #fff; 
-      cursor: pointer; 
-      box-shadow: 0 0 0 3px rgba(0,0,0,.2);
+      background: #fff;
+      cursor: pointer;
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, .2);
     }
     
     /* Mobile adjustments for controls */
@@ -278,23 +391,23 @@
         gap: 6px;
       }
     }
-
+    
     /* Right-side controls */
-    .right { 
-      margin-left: auto; 
-      display: flex; 
-      align-items: center; 
-      gap: 8px; 
+    .right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     
     .speed {
-      background: rgba(255,255,255,.12);
-      color: #fff; 
-      border-radius: 12px; 
-      padding: 8px 10px; 
+      background: rgba(255, 255, 255, .12);
+      color: #fff;
+      border-radius: 12px;
+      padding: 8px 10px;
       border: 0;
     }
-
+    
     /* Mobile tap area improvements */
     @media (max-width: 768px) {
       .icon, .btn, .btn1 {
@@ -303,33 +416,22 @@
         justify-content: center;
       }
     }
-
+    
     /* Prevent image/element dragging */
-    img, .player-shell, .anti-iframe { 
-      -webkit-user-drag: none; 
-    }
-    
-    /* Back button row */
-    .back-row {
-      margin-bottom: 15px;
-    }
-    
-    .back-row button {
-      background: rgba(255,255,255,.1);
-      border: none;
-      color: #fff;
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
+    img, .player-shell, .anti-iframe {
+      -webkit-user-drag: none;
     }
     
     /* Player CTA buttons */
     .player-cta {
-      margin-top: 15px;
+      margin-top: 20px;
       display: flex;
-      gap: 10px;
+      gap: 15px;
       flex-wrap: wrap;
+    }
+    
+    .player-cta a {
+      text-decoration: none;
     }
     
     @media (max-width: 768px) {
@@ -342,6 +444,13 @@
         text-align: center;
         justify-content: center;
       }
+    }
+    
+    /* Divider */
+    .bar {
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.3), transparent);
+      margin: 30px 0;
     }
     
     /* Related cards */
@@ -357,6 +466,124 @@
         grid-template-columns: 1fr;
         gap: 15px;
       }
+    }
+    
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+    }
+    
+    .card-body {
+      padding: 15px;
+    }
+    
+    .tag-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-size: 0.8rem;
+      color: #aaa;
+    }
+    
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--subject-color, #666);
+    }
+    
+    .card h4 {
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+    
+    .card p {
+      font-size: 0.9rem;
+      color: #ccc;
+      margin-bottom: 15px;
+    }
+    
+    .card-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+    
+    /* Footer */
+    .footer {
+      margin-top: 60px;
+      position: relative;
+    }
+    
+    .footer-top-art {
+      height: 5px;
+      background: linear-gradient(90deg, #ff0080, #ff8c00, #ffed00, #00ff80, #00c3ff, #6a11cb);
+    }
+    
+    .footer-inner {
+      padding: 40px 0;
+      text-align: center;
+    }
+    
+    .footer-social {
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    
+    .footer-social a {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #fff;
+      color: #111;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      text-decoration: none;
+      transition: transform 0.3s;
+    }
+    
+    .footer-social a:hover {
+      transform: scale(1.1);
+    }
+    
+    .footer-menu {
+      display: flex;
+      gap: 26px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    
+    .footer-menu a {
+      color: #eaeaea;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    
+    .footer-menu a:hover {
+      color: #fff;
+    }
+    
+    .footer-copy {
+      font-size: 13px;
+      color: #bdbdbd;
     }
     
     /* No JavaScript warning */
@@ -379,6 +606,33 @@
     .no-js .cards {
       display: none;
     }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+      
+      .hamburger {
+        display: flex;
+      }
+      
+      .header {
+        padding: 10px 0;
+      }
+      
+      .brand {
+        font-size: 1.2rem;
+      }
+      
+      h2 {
+        font-size: 1.5rem;
+      }
+      
+      h3 {
+        font-size: 1.3rem;
+      }
+    }
   </style>
 </head>
 <body class="no-js">
@@ -392,7 +646,6 @@
   <header class="header">
     <div class="container nav">
       <a class="brand" href="index.html">
-        <img alt="selenix logo">
         <div class="logo-text">Obscura Vault</div>
       </a>
       <nav class="nav-links">
@@ -401,49 +654,25 @@
         <a href="lessons.html">Lessons</a>
         <a href="index.html#contact">Contact</a>
         <button class="icon-btn" data-open-search aria-label="Search">
-          <img class="search-icon" src="https://cdn-icons-png.flaticon.com/128/3686/3686896.png" alt="Search" loading="lazy" decoding="async">
+          <i class='bx bx-search'></i>
         </button>
       </nav>
       <button class="icon-btn hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
     </div>
-    <div class="mobile-drawer">
-      <a href="index.html">Home</a>
-      <a href="index.html#about">About</a>
-      <a href="lessons.html">Lessons</a>
-      <a href="index.html#contact">Contact</a>
-      <a href="#" data-open-search>Search</a>
-    </div>
-    <div class="mobile-searchbar">
-      <form id="mobileSearchForm">
-        <input id="mobileSearch" placeholder="Search lessons...">
-        <button type="submit">Search</button>
-      </form>
-    </div>
   </header>
-
-  <!-- Search overlay -->
-  <div class="search-overlay" id="searchOverlay">
-    <div class="search-card">
-      <h3>Search lessons</h3>
-      <div class="search-row">
-        <input id="globalSearchInput" placeholder="Type keyword...">
-        <button id="globalSearchGo">Search</button>
-      </div>
-    </div>
-  </div>
 
   <div class="container player-wrap">
     <div class="back-row">
-      <button data-back>← Back</button>
+      <button data-back onclick="history.back()">← Back</button>
     </div>
 
-    <h2 id="playerTitle">Loading...</h2>
+    <h2 id="playerTitle">Advanced Photography Techniques</h2>
 
     <!-- Custom Player -->
     <div class="player-shell" id="playerShell" aria-label="video player">
       <!-- Host for YouTube iframe -->
       <div class="yt-host" id="ytHost">
-        <div id="ytPlayer" class="yt-iframe" title="YouTube player"></div>
+        <iframe id="ytPlayer" class="yt-iframe" src="https://www.youtube.com/embed/9i_UWs0tgJw?enablejsapi=1" title="YouTube player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
       </div>
 
       <!-- Transparent blocker over the iframe (prevents context menu & direct clicks) -->
@@ -452,7 +681,7 @@
       <!-- Watermark -->
       <div class="ov-watermark" aria-hidden="true"><span>Obscura Vault</span></div>
       <div class="ov-watermark1">
-        <img src="http://lumosbio.infy.uk/wp-content/uploads/2025/08/Imaf.png" alt="Watermark">
+        <img src="https://via.placeholder.com/100?text=OV" alt="Watermark">
       </div>
 
       <!-- Custom Controls -->
@@ -466,7 +695,7 @@
           <div class="seek">
             <span class="time" id="timeLeft">00:00</span>
             <input type="range" id="seekBar" min="0" max="1000" step="1" value="0" aria-label="Seek">
-            <span class="time" id="timeRight">00:00</span>
+            <span class="time" id="timeRight">10:34</span>
           </div>
 
           <div class="right">
@@ -494,132 +723,109 @@
       </div>
     </div>
 
-    <div class="player-cta" style="margin-top:10px">
-      <a class="btn1" id="telegramBtn" target="_blank">Terms and Conditions</a>
-      <a class="btn1 secondary" id="resourceBtn" target="_blank">Access PDF</a>
+    <div class="player-cta">
+      <a class="btn1" id="telegramBtn" href="#" target="_blank">Terms and Conditions</a>
+      <a class="btn1 secondary" id="resourceBtn" href="#" target="_blank">Access PDF</a>
     </div>
 
-    <div class="bar" style="margin:20px 0 16px"></div>
+    <div class="bar"></div>
     <h3>Other parts in this lesson</h3>
-    <div class="cards" id="relatedCards"></div>
+    <div class="cards" id="relatedCards">
+      <!-- Cards will be generated by JavaScript -->
+    </div>
   </div>
 
   <!-- Footer -->
   <footer class="footer">
     <div class="footer-top-art"></div>
     <div class="container">
-      <div class="footer-inner" style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;text-align:center;gap:18px;padding-top:10px;padding-bottom:50px">
-        <div class="footer-social" style="display:flex;gap:18px">
-          <a href="https://t.me/ObscuraVaulfOfficial" target="_blank" aria-label="Telegram" title="Telegram"
-             style="width:44px;height:44px;border-radius:50%;background:#fff;color:#111;display:inline-flex;align-items:center;justify-content:center;font-size:26px;text-decoration:none">
+      <div class="footer-inner">
+        <div class="footer-social">
+          <a href="https://t.me/ObscuraVaulfOfficial" target="_blank" aria-label="Telegram" title="Telegram">
             <i class='bx bxl-telegram'></i>
           </a>
-          <a href="https://www.youtube.com/@ObscuraVault-Official" target="_blank" aria-label="YouTube" title="YouTube"
-             style="width:44px;height:44px;border-radius:50%;background:#fff;color:#111;display:inline-flex;align-items:center;justify-content:center;font-size:26px;text-decoration:none">
+          <a href="https://www.youtube.com/@ObscuraVault-Official" target="_blank" aria-label="YouTube" title="YouTube">
             <i class='bx bxl-youtube'></i>
           </a>
         </div>
-        <nav class="footer-menu" style="display:flex;gap:26px;flex-wrap:wrap;justify-content:center">
-          <a href="index.html" style="color:#eaeaea;text-decoration:none">Home</a>
-          <a href="index.html#about" style="color:#eaeaea;text-decoration:none">About</a>
-          <a href="lessons.html" style="color:#eaeaea;text-decoration:none">Lessons</a>
-          <a href="index.html#contact" style="color:#eaeaea;text-decoration:none">Contact</a>
+        <nav class="footer-menu">
+          <a href="index.html">Home</a>
+          <a href="index.html#about">About</a>
+          <a href="lessons.html">Lessons</a>
+          <a href="index.html#contact">Contact</a>
         </nav>
-        <div class="footer-copy" style="font-size:13px;color:#bdbdbd">© 2025 Obscura Vault. All Rights Reserved</div>
+        <div class="footer-copy">© 2025 Obscura Vault. All Rights Reserved</div>
       </div>
     </div>
   </footer>
 
-  <!-- Shared helpers -->
-  <script src="selenix.js"></script>
-
-  <!-- YouTube IFrame API (do not async-defer when you need onYouTubeIframeAPIReady) -->
-  <script>
-    // Load the YouTube API once (idempotent)
-    (function ensureYTAPI(){
-      if (window.YT && window.YT.Player) return;
-      if (document.getElementById('yt-iframe-api')) return;
-      const s = document.createElement('script');
-      s.src = "https://www.youtube.com/iframe_api";
-      s.id = "yt-iframe-api";
-      document.head.appendChild(s);
-    })();
-  </script>
-
-  <!-- Page script -->
   <script>
   // Remove no-js class if JavaScript is enabled
   document.body.classList.remove('no-js');
   
-  // ---- Security Measures ----
-  // Disable right-click context menu
-  document.addEventListener('contextmenu', function(e) {
-    e.preventDefault();
-    return false;
-  });
-  
-  // Disable text selection
-  document.addEventListener('selectstart', function(e) {
-    e.preventDefault();
-    return false;
-  });
-  
-  // Disable drag and drop
-  document.addEventListener('dragstart', function(e) {
-    e.preventDefault();
-    return false;
-  });
-  
-  // Disable developer tools (F12, Ctrl+Shift+I, etc.)
-  document.addEventListener('keydown', function(e) {
-    // Disable F12
-    if (e.key === 'F12') {
-      e.preventDefault();
-      return false;
+  // Sample data for demonstration
+  const sampleData = {
+    items: [
+      {
+        id: '1',
+        subject: 'Photography',
+        lesson: 'Advanced Techniques',
+        partTitle: 'Part 1: Composition',
+        youtube: 'https://www.youtube.com/watch?v=9i_UWs0tgJw',
+        thumb: '',
+        description: 'Learn the rules of composition and how to break them creatively.',
+        telegram: '#',
+        resource: '#'
+      },
+      {
+        id: '2',
+        subject: 'Photography',
+        lesson: 'Advanced Techniques',
+        partTitle: 'Part 2: Lighting',
+        youtube: 'https://www.youtube.com/watch?v=abc123',
+        thumb: '',
+        description: 'Master natural and artificial lighting techniques for stunning photos.',
+        telegram: '#',
+        resource: '#'
+      },
+      {
+        id: '3',
+        subject: 'Photography',
+        lesson: 'Advanced Techniques',
+        partTitle: 'Part 3: Post-Processing',
+        youtube: 'https://www.youtube.com/watch?v=def456',
+        thumb: '',
+        description: 'Enhance your images with professional editing techniques.',
+        telegram: '#',
+        resource: '#'
+      },
+      {
+        id: '4',
+        subject: 'Photography',
+        lesson: 'Advanced Techniques',
+        partTitle: 'Part 4: Special Effects',
+        youtube: 'https://www.youtube.com/watch?v=ghi789',
+        thumb: '',
+        description: 'Create amazing visual effects both in-camera and in post.',
+        telegram: '#',
+        resource: '#'
+      }
+    ],
+    current: {
+      id: '1',
+      subject: 'Photography',
+      lesson: 'Advanced Techniques',
+      partTitle: 'Part 1: Composition',
+      youtube: 'https://www.youtube.com/watch?v=9i_UWs0tgJw',
+      thumb: '',
+      description: 'Learn the rules of composition and how to break them creatively.',
+      telegram: '#',
+      resource: '#'
     }
-    
-    // Disable Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C, Ctrl+U
-    if (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) {
-      e.preventDefault();
-      return false;
-    }
-    
-    // Disable Ctrl+U (view source)
-    if (e.ctrlKey && e.key === 'u') {
-      e.preventDefault();
-      return false;
-    }
-    
-    // Block common "save/open" combos
-    if ((e.ctrlKey || e.metaKey) && ['s','u','p','o'].includes(e.key.toLowerCase())) {
-      e.preventDefault();
-      return false;
-    }
-  });
-  
-  // Detect if dev tools are open (basic detection)
-  setInterval(function() {
-    const widthThreshold = window.outerWidth - window.innerWidth > 160;
-    const heightThreshold = window.outerHeight - window.innerHeight > 160;
-    const orientation = widthThreshold ? 'vertical' : 'horizontal';
-    
-    if (!(heightThreshold && widthThreshold) &&
-        ((window.Firebug && window.Firebug.chrome && window.Firebug.chrome.isInitialized) || 
-         widthThreshold || heightThreshold)) {
-      // Dev tools detected - redirect or show warning
-      document.body.innerHTML = '<div style="padding: 20px; text-align: center;"><h2>Developer Tools Detected</h2><p>Please close developer tools to continue using this site.</p></div>';
-      window.stop();
-    }
-  }, 1000);
-  
-  // ---- State ----
-  const state = { items:[], current:null, group:null, subjects:[], colors:{}, player:null, apiReady:false, tick:null, seeking:false };
-
-  // Basic route helpers
-  function getRID(){ return new URLSearchParams(location.search).get('rid'); }
+  };
 
   // Extract a YouTube videoId from common URL formats
-  function extractYouTubeID(urlOrId){
+  function extractYouTubeID(urlOrId) {
     if (!urlOrId) return null;
     // already an 11-char ID
     if (/^[a-zA-Z0-9_-]{11}$/.test(urlOrId)) return urlOrId;
@@ -638,62 +844,174 @@
   }
 
   // Format time as mm:ss or hh:mm:ss
-  function fmt(seconds){
-    seconds = Math.max(0, Math.floor(seconds||0));
-    const h = Math.floor(seconds/3600);
-    const m = Math.floor((seconds%3600)/60);
-    const s = seconds%60;
-    if (h>0) return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-    return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  function fmt(seconds) {
+    seconds = Math.max(0, Math.floor(seconds || 0));
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    if (h > 0) return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   }
 
-  // UI node refs
-  const $ = sel => document.querySelector(sel);
-  const $$ = sel => document.querySelectorAll(sel);
+  // Render page
+  function renderPlayer() {
+    const t = document.getElementById('playerTitle');
+    if (!sampleData.current) {
+      t.textContent = 'Not found';
+      return;
+    }
 
-  function wireControls(){
-    const playBtn = $('#playPause');
-    const playIcon = $('#playIcon');
-    const playLabel = $('#playLabel');
-    const seekBar = $('#seekBar');
-    const tL = $('#timeLeft');
-    const tR = $('#timeRight');
-    const speed = $('#speed');
-    const pipBtn = $('#pipBtn');
-    const fsBtn = $('#fsBtn');
-    const shell = $('#playerShell');
-    const antiIframe = $('#antiIframe');
-    const videoElement = $('#ytPlayer');
+    t.textContent = `${sampleData.current.lesson} — ${sampleData.current.partTitle}`;
 
-    // Play/Pause
-    playBtn.addEventListener('click', ()=>{
-      if (!state.player) return;
-      const st = state.player.getPlayerState();
-      if (st === YT.PlayerState.PLAYING) {
-        state.player.pauseVideo();
-      } else {
-        state.player.playVideo();
-      }
-    });
+    // Buttons
+    const tg = document.getElementById('telegramBtn');
+    const rs = document.getElementById('resourceBtn');
+    tg.href = sampleData.current.telegram || '#';
+    rs.href = sampleData.current.resource || '#';
 
-    // Mobile tap to play/pause
-    antiIframe.addEventListener('click', (e) => {
-      if (window.innerWidth <= 768) {
-        if (!state.player) return;
-        const st = state.player.getPlayerState();
-        if (st === YT.PlayerState.PLAYING) {
-          state.player.pauseVideo();
-        } else {
-          state.player.playVideo();
+    // Get current video thumbnail as fallback
+    const currentVideoId = extractYouTubeID(sampleData.current.youtube);
+    const fallbackThumb = currentVideoId ? `https://img.youtube.com/vi/${currentVideoId}/mqdefault.jpg` : '';
+
+    // Related parts
+    const rel = document.getElementById('relatedCards');
+    rel.innerHTML = '';
+    
+    sampleData.items.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      
+      // Use part thumbnail if available, otherwise use fallback
+      const partVideoId = extractYouTubeID(p.youtube);
+      const thumbSrc = p.thumb || (partVideoId ? `https://img.youtube.com/vi/${partVideoId}/mqdefault.jpg` : fallbackThumb);
+      
+      const img = document.createElement('img');
+      img.src = thumbSrc;
+      img.alt = p.partTitle || 'thumbnail';
+      img.onerror = function() {
+        // If thumbnail fails to load, use fallback
+        if (thumbSrc !== fallbackThumb && fallbackThumb) {
+          this.src = fallbackThumb;
         }
-        e.stopPropagation();
+      };
+      card.appendChild(img);
+      
+      const body = document.createElement('div');
+      body.className = 'card-body';
+      
+      const tag = document.createElement('div');
+      tag.className = 'tag-row';
+      
+      const dot = document.createElement('span');
+      dot.className = 'dot';
+      dot.style.setProperty('--subject-color', '#6a11cb');
+      tag.appendChild(dot);
+      tag.appendChild(document.createTextNode(`${p.subject}`));
+      
+      const h4 = document.createElement('h4');
+      h4.textContent = p.partTitle || 'Part';
+      
+      const desc = document.createElement('p');
+      desc.textContent = p.description || '';
+      
+      const actions = document.createElement('div');
+      actions.className = 'card-actions';
+      
+      const open = document.createElement('button');
+      open.className = 'btn1';
+      open.textContent = (p.id === sampleData.current.id) ? 'Now Playing' : 'Play';
+      open.disabled = (p.id === sampleData.current.id);
+      open.addEventListener('click', () => {
+        // In a real app, this would navigate to the selected video
+        alert(`Would navigate to video: ${p.partTitle}`);
+      });
+      
+      actions.appendChild(open);
+      body.appendChild(tag);
+      body.appendChild(h4);
+      body.appendChild(desc);
+      body.appendChild(actions);
+      card.appendChild(body);
+      rel.appendChild(card);
+    });
+  }
+
+  // Initialize player controls
+  function initPlayerControls() {
+    const playBtn = document.getElementById('playPause');
+    const playIcon = document.getElementById('playIcon');
+    const playLabel = document.getElementById('playLabel');
+    const seekBar = document.getElementById('seekBar');
+    const timeLeft = document.getElementById('timeLeft');
+    const timeRight = document.getElementById('timeRight');
+    const speedSelect = document.getElementById('speed');
+    const pipBtn = document.getElementById('pipBtn');
+    const fsBtn = document.getElementById('fsBtn');
+    const antiIframe = document.getElementById('antiIframe');
+    
+    let isPlaying = true;
+    
+    // Play/Pause button
+    playBtn.addEventListener('click', () => {
+      isPlaying = !isPlaying;
+      if (isPlaying) {
+        playIcon.className = 'bx bx-pause';
+        playLabel.textContent = 'Pause';
+      } else {
+        playIcon.className = 'bx bx-play';
+        playLabel.textContent = 'Play';
       }
     });
-
-    // Show controls on mobile when tapping video
-    antiIframe.addEventListener('touchstart', (e) => {
+    
+    // Mobile tap to play/pause
+    antiIframe.addEventListener('click', () => {
       if (window.innerWidth <= 768) {
-        const controls = $('#controls');
+        isPlaying = !isPlaying;
+        if (isPlaying) {
+          playIcon.className = 'bx bx-pause';
+          playLabel.textContent = 'Pause';
+        } else {
+          playIcon.className = 'bx bx-play';
+          playLabel.textContent = 'Play';
+        }
+      }
+    });
+    
+    // Seek bar
+    seekBar.addEventListener('input', () => {
+      const value = seekBar.value;
+      timeLeft.textContent = fmt(value / 1000 * 650); // 650 is the mock video duration
+    });
+    
+    // Speed selection
+    speedSelect.addEventListener('change', () => {
+      // In a real app, this would change playback rate
+      console.log(`Playback speed changed to: ${speedSelect.value}`);
+    });
+    
+    // Picture in Picture
+    pipBtn.addEventListener('click', () => {
+      alert('Picture-in-Picture mode would be activated here');
+    });
+    
+    // Fullscreen
+    fsBtn.addEventListener('click', () => {
+      const shell = document.getElementById('playerShell');
+      if (!document.fullscreenElement) {
+        if (shell.requestFullscreen) shell.requestFullscreen();
+        else if (shell.webkitRequestFullscreen) shell.webkitRequestFullscreen();
+        else if (shell.msRequestFullscreen) shell.msRequestFullscreen();
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        else if (document.msExitFullscreen) document.msExitFullscreen();
+      }
+    });
+    
+    // Show controls on mobile when tapping video
+    antiIframe.addEventListener('touchstart', () => {
+      if (window.innerWidth <= 768) {
+        const controls = document.getElementById('controls');
         controls.style.opacity = '1';
         controls.style.pointerEvents = 'all';
         
@@ -705,219 +1023,22 @@
         }, 3000);
       }
     });
-
-    // Seek
-    seekBar.addEventListener('input', ()=>{
-      state.seeking = true;
-      const dur = state.player ? (state.player.getDuration()||0) : 0;
-      const target = (seekBar.value / 1000) * dur;
-      tL.textContent = fmt(target);
-    });
-    seekBar.addEventListener('change', ()=>{
-      const dur = state.player ? (state.player.getDuration()||0) : 0;
-      const target = (seekBar.value / 1000) * dur;
-      if (state.player && Number.isFinite(target)) {
-        state.player.seekTo(target, true);
-      }
-      state.seeking = false;
-    });
-
-    // Speed
-    speed.addEventListener('change', ()=>{
-      if (!state.player) return;
-      const rate = parseFloat(speed.value);
-      state.player.setPlaybackRate(rate);
-    });
-
-    // Picture in Picture
-    pipBtn.addEventListener('click', async ()=>{
-      try {
-        if (document.pictureInPictureElement) {
-          await document.exitPictureInPicture();
-        } else if (document.pictureInPictureEnabled) {
-          // For YouTube iframe, we need to request PiP on the iframe
-          const iframe = $('#ytPlayer');
-          if (iframe && iframe.requestPictureInPicture) {
-            await iframe.requestPictureInPicture();
-          }
-        }
-      } catch (error) {
-        console.error('Picture-in-Picture failed:', error);
-      }
-    });
-
-    // Fullscreen
-    fsBtn.addEventListener('click', ()=>{
-      const el = shell;
-      if (!document.fullscreenElement) {
-        if (el.requestFullscreen) el.requestFullscreen();
-        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-        else if (el.msRequestFullscreen) el.msRequestFullscreen();
-      } else {
-        if (document.exitFullscreen) document.exitFullscreen();
-        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-        else if (document.msExitFullscreen) document.msExitFullscreen();
-      }
-    });
-
-    // Tick updater
-    if (state.tick) clearInterval(state.tick);
-    state.tick = setInterval(()=>{
-      if (!state.player) return;
-      const st = state.player.getPlayerState?.();
-      const cur = state.player.getCurrentTime?.() || 0;
-      const dur = state.player.getDuration?.() || 0;
-
-      if (Number.isFinite(cur) && Number.isFinite(dur) && dur>0 && !state.seeking){
-        seekBar.value = Math.round((cur / dur) * 1000);
-        tL.textContent = fmt(cur);
-        tR.textContent = fmt(dur);
-      }
-
-      // icon/label
-      if (st === YT.PlayerState.PLAYING) {
-        playIcon.className = 'bx bx-pause';
-        playLabel.textContent = 'Pause';
-      } else {
-        playIcon.className = 'bx bx-play';
-        playLabel.textContent = 'Play';
-      }
-    }, 200);
   }
 
-  // Initialize YT Player for the current item
-  function initYT(videoId){
-    const host = document.getElementById('ytPlayer');
-    host.innerHTML = ''; // ensure clean
-
-    state.player = new YT.Player('ytPlayer', {
-      videoId,
-      playerVars: {
-        autoplay: 1,
-        controls: 0,
-        disablekb: 1,
-        modestbranding: 1,
-        rel: 0,
-        fs: 0,
-        playsinline: 1,
-        iv_load_policy: 3,
-        enablejsapi: 1
-      },
-      events: {
-        onReady: (e) => {
-          // populate available rates into the menu
-          const rates = state.player.getAvailablePlaybackRates?.() || [0.5,0.75,1,1.25,1.5,1.75,2];
-          const speedSel = $('#speed');
-          const currentOptions = Array.from(speedSel.options).map(o=>parseFloat(o.value));
-          // refresh only if differs
-          if (JSON.stringify(currentOptions) !== JSON.stringify(rates)) {
-            speedSel.innerHTML = rates.map(r=>`<option value="${r}" ${r===1?'selected':''}>${r}×</option>`).join('');
-          }
-          wireControls();
-        }
-      }
-    });
+  // Initialize the page
+  function init() {
+    renderPlayer();
+    initPlayerControls();
+    
+    // Simulate YouTube API loading
+    setTimeout(() => {
+      // Simulate player ready event
+      console.log('YouTube player is ready');
+    }, 1000);
   }
 
-  // Render page
-  function renderPlayer(){
-    const t = document.getElementById('playerTitle');
-    if (!state.current){ t.textContent='Not found'; return; }
-
-    t.textContent = `${state.current.lesson} — ${state.current.partTitle}`;
-
-    // Buttons
-    const tg = document.getElementById('telegramBtn');
-    const rs = document.getElementById('resourceBtn');
-    tg.href = state.current.telegram || '#';
-    rs.href = state.current.resource || '#';
-
-    // Related parts
-    const rel = document.getElementById('relatedCards');
-    rel.innerHTML = '';
-    if (state.group){
-      state.group.parts.forEach(p=>{
-        const card = document.createElement('div'); card.className='card';
-        const img = document.createElement('img'); img.src = p.thumb || ''; img.alt = p.partTitle || 'thumbnail';
-        card.appendChild(img);
-        const body = document.createElement('div'); body.className='card-body';
-        const tag = document.createElement('div'); tag.className='tag-row';
-        const dot = document.createElement('span'); dot.className='dot'; dot.style.setProperty('--subject-color', state.colors[state.group.subject]||'#000');
-        tag.appendChild(dot);
-        tag.appendChild(document.createTextNode(`${state.group.subject}`));
-        const h4 = document.createElement('h4'); h4.textContent = p.partTitle || 'Part';
-        const desc = document.createElement('p'); desc.textContent = p.description || '';
-        const actions = document.createElement('div'); actions.className='card-actions';
-        const open = document.createElement('button'); open.className='btn1'; open.textContent = (p.id === state.current.id) ? 'Now Playing' : 'Play';
-        open.disabled = (p.id === state.current.id);
-        open.addEventListener('click', ()=>window.location.href=`player.html?rid=${encodeURIComponent(p.id)}`);
-        actions.appendChild(open);
-        body.appendChild(tag); body.appendChild(h4); body.appendChild(desc); body.appendChild(actions);
-        card.appendChild(body);
-        rel.appendChild(card);
-      });
-    }
-  }
-
-  // Boot
-  async function boot(){
-    selenix.initHeader();
-
-    // Back button functionality
-    document.querySelector('[data-back]').addEventListener('click', () => {
-      window.history.back();
-    });
-
-    try {
-      state.items = await selenix.fetchSheet();
-      state.subjects = selenix.uniqueSubjects(state.items);
-      state.colors = selenix.subjectColorMap(state.subjects);
-      const rid = getRID();
-      state.current = state.items.find(x=>x.id===rid);
-      if (state.current){
-        const groups = selenix.groupByLesson(state.items);
-        state.group = groups.find(g=>g.subject===state.current.subject && g.lesson===state.current.lesson);
-      }
-      renderPlayer();
-
-      // Wait YouTube API then init
-      function startIfReady(){
-        if (window.YT && window.YT.Player){
-          let vid = extractYouTubeID(state.current?.youtube);
-          const playerTitle = document.getElementById('playerTitle');
-
-          if (!vid) {
-            // Set default video ID
-            vid = '9i_UWs0tgJw'; // Replace with your default video ID
-
-            // Show message to user
-            playerTitle.textContent = 'Original video is not uploaded yet. Please wait until the video uploading is Completed.';
-            console.warn('No video found. Loading default video.');
-          } else {
-            // Show the actual video title if available
-            playerTitle.textContent = `${state.current.lesson} — ${state.current.partTitle}`;
-          }
-
-          initYT(vid);
-
-        } else {
-          setTimeout(startIfReady, 80);
-        }
-      }
-      startIfReady();
-
-    } catch (e){
-      console.error(e);
-      document.getElementById('playerTitle').textContent = 'Failed to load player.';
-    }
-  }
-  
-  // YouTube API callback is required globally; we chain to boot if needed.
-  function onYouTubeIframeAPIReady(){
-    // If boot already ran, we'll init from there; otherwise boot will call later.
-  }
-
-  boot();
+  // Start initialization when page loads
+  window.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
