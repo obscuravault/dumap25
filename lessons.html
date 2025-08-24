@@ -112,8 +112,8 @@
   <script src="selenix.js"></script>
 
   <!-- Page script -->
-  <script>
-  const state = { items:[], groups:[], subjects:[], colors:{}, activeSubject:'All' };
+<script>
+  const state = { items:[], groups:[], subjects:[], colors:{}, activeSubject:'' };
 
   function readQuery(){
     const p = new URLSearchParams(location.search);
@@ -124,12 +124,11 @@
   function buildSubjectChips(){
     const wrap = document.getElementById('subjectChips');
     wrap.innerHTML = '';
-    const allChip = chip('All', 'All' === state.activeSubject);
-    wrap.appendChild(allChip);
     state.subjects.forEach(sub=>{
       wrap.appendChild(chip(sub, sub === state.activeSubject, state.colors[sub]));
     });
   }
+
   function chip(label, active, color){
     const el = document.createElement('button');
     el.className = 'chip' + (active?' active':'');
@@ -147,7 +146,7 @@
     const wrap = document.getElementById('lessonsWrap');
     wrap.innerHTML = '';
     let list = state.groups;
-    if (state.activeSubject !== 'All') list = list.filter(g=>g.subject === state.activeSubject);
+    if (state.activeSubject) list = list.filter(g=>g.subject === state.activeSubject);
 
     const q = readQuery();
     if (q.subject && q.lesson){
@@ -209,14 +208,22 @@
     try {
       state.items = await selenix.fetchSheet();
       state.groups = selenix.groupByLesson(state.items);
-      state.subjects = selenix.uniqueSubjects(state.items);
+      // Sort subjects alphabetically
+      state.subjects = selenix.uniqueSubjects(state.items).sort((a,b)=>a.localeCompare(b));
       state.colors = selenix.subjectColorMap(state.subjects);
+
+      // Set active subject to alphabetically first if not specified
+      const q = readQuery();
+      if (q.subject){
+        state.activeSubject = q.subject;
+      } else {
+        state.activeSubject = state.subjects[0] || ''; 
+      }
 
       const pick = document.getElementById('pickerChips');
       pick.innerHTML = '';
-      pick.appendChild(chip('All', false));
       state.subjects.forEach(s=>{
-        const c = chip(s, false, state.colors[s]);
+        const c = chip(s, s === state.activeSubject, state.colors[s]);
         pick.appendChild(c);
       });
 
@@ -224,8 +231,7 @@
         document.getElementById('subjectPicker').classList.remove('open');
       });
 
-      const q = readQuery();
-      if (q.subject){ state.activeSubject = q.subject; document.getElementById('subjectPicker').classList.remove('open'); }
+      if (q.subject){ document.getElementById('subjectPicker').classList.remove('open'); }
 
       buildSubjectChips();
       renderLessons();
@@ -235,10 +241,11 @@
     }
   }
   boot();
-  </script>
+</script>
 </body>
 
 </html>
+
 
 
 
