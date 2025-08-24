@@ -8,12 +8,7 @@
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 
   <style>
-    .player-wrap { 
-      max-width: 1100px; 
-      margin: 0 auto; 
-      padding: 0 10px; /* added padding for small screens */
-    }
-
+    .player-wrap { max-width: 1100px; margin: 0 auto; }
     .player-shell {
       position: relative;
       width: 100%;
@@ -25,21 +20,25 @@
       user-select: none;
       -webkit-user-select: none;
     }
-
-    /* Watermark */
+    /*Watermark Image*/
     .ov-watermark1 {
       position: absolute;
-      bottom: 10px; right: 10px;
+      bottom: 10px;
+      right: 10px;
       pointer-events: none;
       opacity: 0.18;
       mix-blend-mode: difference;
-      width: 80px;
-      height: 80px;
+      width: 100px;
+      height: 100px;
+      overflow: hidden;
     }
     .ov-watermark1 img {
-      width: 100%; height: 100%; object-fit: cover; filter: invert(1); opacity: 0.6;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: invert(1);
+      opacity: 0.6;
     }
-
     .ov-watermark {
       position: absolute;
       inset: 0;
@@ -52,68 +51,117 @@
       color: #00f;
       text-transform: uppercase;
       letter-spacing: 4px;
-      font-size: clamp(12px, 5vw, 42px); /* responsive */
-      background-image: repeating-linear-gradient(
-        -30deg,
-        rgba(0,0,255,.12) 0 40px,
-        rgba(0,0,255,.15) 40px 80px
-      );
+      font-size: clamp(16px, 5vw, 42px);
+      background-image:
+        repeating-linear-gradient(
+          -30deg,
+          rgba(0,0,255,.12) 0 40px,
+          rgba(0,0,255,.15) 40px 80px
+        );
     }
-
+    .ov-watermark span { text-shadow: 0 1px 0 rgba(0,0,0,.8); }
+    .yt-host, .yt-iframe { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .yt-iframe { border: 0; }
+    .anti-iframe { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 4; background: transparent; }
     .controls {
       position: absolute;
       left: 0; right: 0; bottom: 0;
       z-index: 5;
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
       gap: 8px;
-      padding: 10px 8px;
+      padding: 10px 12px;
       background: linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,.0));
     }
-
-    .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; width: 100%; }
-    .btn1, .icon, .btn {
+    .row { display: flex; align-items: center; gap: 10px; }
+    .btn1, .icon {
       appearance: none; border: 0; outline: 0;
-      background: rgba(255,255,255,.12);
-      color: #fff; padding: 10px 14px; border-radius: 12px;
+      background: rgba(0,0,0,1);
+      color: #fff; padding: 8px 12px; border-radius: 12px;
       font-size: 14px; line-height: 1; cursor: pointer;
-      display: inline-flex; align-items: center; gap: 6px;
+      display: inline-flex; align-items: center; gap: 8px;
       backdrop-filter: blur(6px);
     }
-    .btn1:hover, .btn:hover, .icon:hover { background: rgba(255,255,255,.18); }
-    .btn1:active, .btn:active, .icon:active { transform: translateY(1px); }
-
-    .seek { flex: 1 1 auto; display: flex; align-items: center; gap: 6px; min-width: 100px; }
-    .seek input[type="range"] { width: 100%; height: 6px; border-radius: 999px; }
-
-    .time { color: #fff; font-size: 12px; min-width: 50px; text-align: center; }
-
-    /* Responsive layout */
-    @media (max-width: 768px) {
-      header .nav-links { display: none; }
-      .player-shell { border-radius: 8px; }
-      .controls { flex-direction: column; align-items: stretch; }
-      .row { flex-direction: column; align-items: stretch; }
-      .seek { width: 100%; }
-      .time { min-width: auto; }
-      .btn1, .btn, .icon { width: 100%; justify-content: center; }
+    .btn1:hover, .icon:hover {
+      background: rgba(255,255,255,.18);
+      color: #000;
+      padding: 8px 12px;
+      border-radius: 12px;
     }
+    .btn1:active, .icon:active { transform: translateY(1px); }
+    .btn, .icon {
+      appearance: none; border: 0; outline: 0;
+      background: rgba(255,255,255,.12);
+      color: #fff; padding: 8px 12px; border-radius: 12px;
+      font-size: 14px; line-height: 1; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px;
+      backdrop-filter: blur(6px);
+    }
+    .btn:hover, .icon:hover { background: rgba(255,255,255,.18); }
+    .btn:active, .icon:active { transform: translateY(1px); }
+    .time {
+      color: #fff;
+      font-variant-numeric: tabular-nums;
+      font-size: 13px;
+      opacity: .9;
+      min-width: 110px;
+      text-align: center;
+    }
+    .seek {
+      flex: 1 1 auto;
+      display: flex; align-items: center; gap: 10px;
+      min-width: 120px;
+    }
+    .seek input[type="range"] {
+      -webkit-appearance: none; appearance: none; width: 100%;
+      height: 6px; border-radius: 999px;
+      background: rgba(255,255,255,.3); outline: none;
+    }
+    .seek input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #fff; cursor: pointer; box-shadow: 0 0 0 3px rgba(0,0,0,.2);
+    }
+    .seek input[type="range"]::-moz-range-thumb {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #fff; cursor: pointer; box-shadow: 0 0 0 3px rgba(0,0,0,.2);
+    }
+    .right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .speed {
+      background: rgba(255,255,255,.12);
+      color: #fff; border-radius: 12px; padding: 8px 10px; border: 0;
+    }
+    img, .player-shell, .anti-iframe { -webkit-user-drag: none; }
 
+    /* === Mobile Responsiveness Additions === */
+    @media (max-width: 992px) {
+      .player-wrap { padding: 0 12px; }
+      .controls { flex-wrap: wrap; }
+      .seek { flex: 1 1 100%; }
+    }
+    @media (max-width: 768px) {
+      h2#playerTitle { font-size: 18px; text-align: center; }
+      .controls { display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 8px; }
+      .row { flex-direction: column; width: 100%; gap: 6px; }
+      .btn1, .btn, .icon { width: 100%; justify-content: center; font-size: 14px; padding: 10px; }
+      .seek { width: 100%; }
+      .time { min-width: auto; text-align: center; }
+    }
     @media (max-width: 480px) {
       .ov-watermark1 { width: 60px; height: 60px; }
-      .ov-watermark { font-size: clamp(10px, 4vw, 24px); }
-      .btn1, .btn, .icon { padding: 8px 10px; font-size: 13px; }
-      .controls { padding: 8px 5px; gap: 6px; }
+      .ov-watermark { font-size: 12px; letter-spacing: 2px; }
+      h2#playerTitle { font-size: 16px; }
+      .btn1, .btn, .icon { font-size: 12px; padding: 8px; }
     }
-
-    img, .player-shell, .anti-iframe { -webkit-user-drag: none; }
   </style>
 </head>
 <body>
-  <!-- [HEADER + BODY CONTENT REMAINS SAME AS YOUR CODE] -->
+  <!-- (KEEP THE SAME HEADER, BODY, FOOTER, AND JS AS IN YOUR ORIGINAL CODE) -->
+  <!-- Nothing else changes except the added CSS above -->
 
-  <!-- Existing JS is fine; no major changes needed for responsiveness -->
+  <!-- Shared helpers -->
   <script src="selenix.js"></script>
-  <!-- Your other scripts remain the same -->
+  <script>
+    // (KEEP YOUR ORIGINAL JS CODE FROM YOUR VERSION HERE)
+  </script>
 </body>
 </html>
