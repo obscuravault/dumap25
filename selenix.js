@@ -98,7 +98,7 @@
         id: `r${i}`,
         subject: (r[idx.subject]||'').trim(),
         lesson: (r[idx.lesson]||'').trim(),
-        partTitle: (r[idx.part]||'').trim(),
+        partTitle: (r[idx.day]||'').trim(),
         description: (r[idx.desc]||'').trim(),
         youtube: normalizeYouTube(r[idx.yt]||''),
         telegram: (r[idx.tg]||'').trim(),
@@ -172,7 +172,7 @@
     return span;
   }
 
-  function formatCount(n){ return `${n} Day${n===1?'':'s'}`; }
+  function formatCount(n){ return `${n} Part${n===1?'':'s'}`; }
 
   // Expose as a global helper for page scripts
   window.selenix = {
@@ -260,6 +260,7 @@
    
 
 })();
+
 
 
 
