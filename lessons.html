@@ -214,7 +214,7 @@
 
       const pick = document.getElementById('pickerChips');
       pick.innerHTML = '';
-      pick.appendChild(chip('All', true));
+      pick.appendChild(chip('All', false));
       state.subjects.forEach(s=>{
         const c = chip(s, false, state.colors[s]);
         pick.appendChild(c);
@@ -239,6 +239,7 @@
 </body>
 
 </html>
+
 
 
 
