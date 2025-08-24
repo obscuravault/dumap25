@@ -239,6 +239,43 @@
       box-shadow: 0 0 0 3px rgba(0,0,0,.2);
     }
     
+    /* Volume control */
+    .volume-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .volume-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 80px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.3);
+      outline: none;
+    }
+    
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+      box-shadow: 0 0 0 3px rgba(0,0,0,.2);
+    }
+    
+    .volume-slider::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+      box-shadow: 0 0 0 3px rgba(0,0,0,.2);
+    }
+    
     /* Mobile adjustments for controls */
     @media (max-width: 768px) {
       .controls {
@@ -267,6 +304,16 @@
       .speed {
         padding: 6px 8px;
         font-size: 12px;
+      }
+      
+      .volume-slider {
+        width: 60px;
+        height: 5px;
+      }
+      
+      .volume-slider::-webkit-slider-thumb {
+        width: 12px;
+        height: 12px;
       }
       
       /* Hide text labels on mobile to save space */
@@ -304,6 +351,23 @@
       }
     }
 
+    /* Landscape fullscreen styles */
+    .landscape-fullscreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 9999;
+      background: #000;
+      border-radius: 0;
+    }
+    
+    .landscape-fullscreen .controls {
+      padding: 15px;
+      background: linear-gradient(to top, rgba(0,0,0,.85), rgba(0,0,0,.0));
+    }
+    
     /* Prevent image/element dragging */
     img, .player-shell, .anti-iframe { 
       -webkit-user-drag: none; 
@@ -463,6 +527,13 @@
             <span id="playLabel">Play</span>
           </button>
 
+          <div class="volume-control">
+            <button class="icon" id="muteBtn" aria-label="Mute/Unmute">
+              <i class='bx bx-volume-full' id="volumeIcon"></i>
+            </button>
+            <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="100" aria-label="Volume">
+          </div>
+
           <div class="seek">
             <span class="time" id="timeLeft">00:00</span>
             <input type="range" id="seekBar" min="0" max="1000" step="1" value="0" aria-label="Seek">
@@ -483,6 +554,11 @@
             <button class="icon" id="pipBtn" aria-label="Picture in Picture">
               <i class='bx bx-window'></i>
               <span>PiP</span>
+            </button>
+
+            <button class="icon" id="lsBtn" aria-label="Landscape Fullscreen">
+              <i class='bx bx-expand-horizontal'></i>
+              <span>Landscape</span>
             </button>
 
             <button class="icon" id="fsBtn" aria-label="Fullscreen">
@@ -613,7 +689,7 @@
   }, 1000);
   
   // ---- State ----
-  const state = { items:[], current:null, group:null, subjects:[], colors:{}, player:null, apiReady:false, tick:null, seeking:false };
+  const state = { items:[], current:null, group:null, subjects:[], colors:{}, player:null, apiReady:false, tick:null, seeking:false, isLandscapeFullscreen: false };
 
   // Basic route helpers
   function getRID(){ return new URLSearchParams(location.search).get('rid'); }
@@ -660,7 +736,11 @@
     const tR = $('#timeRight');
     const speed = $('#speed');
     const pipBtn = $('#pipBtn');
+    const lsBtn = $('#lsBtn');
     const fsBtn = $('#fsBtn');
+    const muteBtn = $('#muteBtn');
+    const volumeIcon = $('#volumeIcon');
+    const volumeSlider = $('#volumeSlider');
     const shell = $('#playerShell');
     const antiIframe = $('#antiIframe');
     const videoElement = $('#ytPlayer');
@@ -673,6 +753,35 @@
         state.player.pauseVideo();
       } else {
         state.player.playVideo();
+      }
+    });
+
+    // Volume control
+    muteBtn.addEventListener('click', ()=>{
+      if (!state.player) return;
+      const isMuted = state.player.isMuted();
+      if (isMuted) {
+        state.player.unMute();
+        volumeIcon.className = 'bx bx-volume-full';
+        volumeSlider.value = state.player.getVolume() || 100;
+      } else {
+        state.player.mute();
+        volumeIcon.className = 'bx bx-volume-mute';
+      }
+    });
+
+    volumeSlider.addEventListener('input', ()=>{
+      if (!state.player) return;
+      const volume = parseInt(volumeSlider.value);
+      state.player.setVolume(volume);
+      
+      // Update mute icon based on volume level
+      if (volume === 0) {
+        volumeIcon.className = 'bx bx-volume-mute';
+      } else if (volume < 50) {
+        volumeIcon.className = 'bx bx-volume-low';
+      } else {
+        volumeIcon.className = 'bx bx-volume-full';
       }
     });
 
@@ -746,8 +855,38 @@
       }
     });
 
+    // Landscape Fullscreen
+    lsBtn.addEventListener('click', ()=>{
+      if (state.isLandscapeFullscreen) {
+        // Exit landscape fullscreen
+        shell.classList.remove('landscape-fullscreen');
+        document.body.style.overflow = '';
+        lsBtn.innerHTML = '<i class="bx bx-expand-horizontal"></i><span>Landscape</span>';
+        state.isLandscapeFullscreen = false;
+      } else {
+        // Enter landscape fullscreen
+        shell.classList.add('landscape-fullscreen');
+        document.body.style.overflow = 'hidden';
+        lsBtn.innerHTML = '<i class="bx bx-collapse-horizontal"></i><span>Exit</span>';
+        state.isLandscapeFullscreen = true;
+        
+        // If in fullscreen, exit it first
+        if (document.fullscreenElement) {
+          if (document.exitFullscreen) document.exitFullscreen();
+        }
+      }
+    });
+
     // Fullscreen
     fsBtn.addEventListener('click', ()=>{
+      // If in landscape mode, exit it first
+      if (state.isLandscapeFullscreen) {
+        shell.classList.remove('landscape-fullscreen');
+        document.body.style.overflow = '';
+        lsBtn.innerHTML = '<i class="bx bx-expand-horizontal"></i><span>Landscape</span>';
+        state.isLandscapeFullscreen = false;
+      }
+      
       const el = shell;
       if (!document.fullscreenElement) {
         if (el.requestFullscreen) el.requestFullscreen();
@@ -760,6 +899,14 @@
       }
     });
 
+    // Handle fullscreen change events
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement && state.isLandscapeFullscreen) {
+        // If exiting fullscreen while in landscape mode, update button text
+        fsBtn.innerHTML = '<i class="bx bx-fullscreen"></i><span>Full</span>';
+      }
+    });
+
     // Tick updater
     if (state.tick) clearInterval(state.tick);
     state.tick = setInterval(()=>{
@@ -767,11 +914,26 @@
       const st = state.player.getPlayerState?.();
       const cur = state.player.getCurrentTime?.() || 0;
       const dur = state.player.getDuration?.() || 0;
+      const vol = state.player.getVolume?.() || 100;
+      const isMuted = state.player.isMuted?.() || false;
 
       if (Number.isFinite(cur) && Number.isFinite(dur) && dur>0 && !state.seeking){
         seekBar.value = Math.round((cur / dur) * 1000);
         tL.textContent = fmt(cur);
         tR.textContent = fmt(dur);
+      }
+
+      // Update volume slider and icon if not being interacted with
+      if (!volumeSlider.matches(':focus')) {
+        volumeSlider.value = isMuted ? 0 : vol;
+        
+        if (isMuted || vol === 0) {
+          volumeIcon.className = 'bx bx-volume-mute';
+        } else if (vol < 50) {
+          volumeIcon.className = 'bx bx-volume-low';
+        } else {
+          volumeIcon.className = 'bx bx-volume-full';
+        }
       }
 
       // icon/label
@@ -921,5 +1083,3 @@
   </script>
 </body>
 </html>
-
-
