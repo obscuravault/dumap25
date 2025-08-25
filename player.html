@@ -781,6 +781,7 @@
     const shell = $('#playerShell');
     const antiIframe = $('#antiIframe');
     const videoElement = $('#ytPlayer');
+    let lastVolume = state.player.getVolume();
 
     // Show/hide buttons based on device
     if (window.innerWidth <= 768) {
@@ -807,14 +808,39 @@
     // Volume control
     muteBtn.addEventListener('click', ()=>{
       if (!state.player) return;
-      const isMuted = state.player.isMuted();
-      if (isMuted) {
+      if (state.player.isMuted()) {
         state.player.unMute();
+        // Restore last volume
+        state.player.setVolume(lastVolume);
+        volumeSlider.value = lastVolume;
         volumeIcon.className = 'bx bx-volume-full';
       } else {
+        lastVolume = state.player.getVolume();
         state.player.mute();
         volumeIcon.className = 'bx bx-volume-mute';
+        volumeSlider.value = 0;
       }
+    });
+    
+    volumeSlider.addEventListener('input', () => {
+        if (!state.player) return;
+        const vol = parseInt(volumeSlider.value, 10);
+        state.player.setVolume(vol);
+        if (vol === 0) {
+            state.player.mute();
+        } else {
+            state.player.unMute();
+            lastVolume = vol; // Save volume
+        }
+    });
+    
+    // Update slider when volume changes via other means (e.g., YouTube's internal controls)
+    state.player.addEventListener('onStateChange', (event) => {
+        if (event.data === YT.PlayerState.PLAYING) {
+            const vol = state.player.getVolume();
+            const isMuted = state.player.isMuted();
+            volumeSlider.value = isMuted ? 0 : vol;
+        }
     });
 
     // Mobile tap to play/pause
@@ -959,13 +985,16 @@
         tR.textContent = fmt(dur);
       }
 
-      // Update volume icon if not being interacted with
+      // Update volume icon and slider position
       if (isMuted || vol === 0) {
         volumeIcon.className = 'bx bx-volume-mute';
+        volumeSlider.value = 0;
       } else if (vol < 50) {
         volumeIcon.className = 'bx bx-volume-low';
+        volumeSlider.value = vol;
       } else {
         volumeIcon.className = 'bx bx-volume-full';
+        volumeSlider.value = vol;
       }
 
       // icon/label
