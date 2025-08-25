@@ -4,11 +4,115 @@
   <meta charset="utf-8">
   <title>Obscura Vault - Courses</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="selenix.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 
-  <!-- Minimal styles for custom controls & overlays -->
   <style>
+    /* Base styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #fff;
+      line-height: 1.6;
+      min-height: 100vh;
+      padding-bottom: 40px;
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    
+    /* Header styles */
+    .header {
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(10px);
+      padding: 15px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.5rem;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 25px;
+      align-items: center;
+    }
+    
+    .nav-links a {
+      color: #e0e0e0;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+    
+    .nav-links a:hover {
+      color: #fff;
+    }
+    
+    .icon-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      border-radius: 8px;
+      transition: background 0.3s;
+    }
+    
+    .icon-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .search-icon {
+      width: 24px;
+      height: 24px;
+      filter: invert(1);
+    }
+    
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .hamburger span {
+      width: 24px;
+      height: 2px;
+      background: #fff;
+      border-radius: 2px;
+      transition: all 0.3s;
+    }
+    
+    /* Player styles */
     .player-wrap { 
       max-width: 1100px; 
       margin: 0 auto; 
@@ -25,29 +129,6 @@
       aspect-ratio: 16/9;
       user-select: none;
       -webkit-user-select: none;
-    }
-    
-    /* Mobile adjustments for player shell */
-    @media (max-width: 768px) {
-      .player-shell {
-        border-radius: 8px;
-        aspect-ratio: 16/9;
-      }
-      
-      /* Hide volume slider on mobile */
-      .volume-slider {
-        display: none !important;
-      }
-      
-      /* Show fullscreen button on mobile */
-      #fsBtn {
-        display: inline-flex !important;
-      }
-      
-      /* Hide landscape button on mobile */
-      #lsBtn {
-        display: none !important;
-      }
     }
     
     /*Watermark Image*/
@@ -133,23 +214,6 @@
       padding: 10px 12px;
       background: linear-gradient(to top, rgba(0,0,0,.75), rgba(0,0,0,.0));
       transition: opacity 0.3s ease;
-    }
-    
-    /* Hide controls when not interacting on mobile */
-    @media (max-width: 768px) {
-      .player-shell:not(:hover) .controls {
-        opacity: 0;
-        pointer-events: none;
-      }
-      
-      .player-shell:hover .controls {
-        opacity: 1;
-      }
-      
-      /* Hide volume controls in normal mobile view */
-      .volume-control {
-        display: none;
-      }
     }
     
     .row {
@@ -296,56 +360,6 @@
       box-shadow: 0 0 0 3px rgba(0,0,0,.2);
     }
     
-    /* Mobile adjustments for controls */
-    @media (max-width: 768px) {
-      .controls {
-        padding: 8px 10px;
-      }
-      
-      .btn, .btn1, .icon {
-        padding: 6px 10px;
-        font-size: 12px;
-      }
-      
-      .time {
-        font-size: 11px;
-        min-width: 90px;
-      }
-      
-      .seek input[type="range"] {
-        height: 5px;
-      }
-      
-      .seek input[type="range"]::-webkit-slider-thumb {
-        width: 12px;
-        height: 12px;
-      }
-      
-      .speed {
-        padding: 6px 8px;
-        font-size: 12px;
-      }
-      
-      .volume-slider {
-        width: 60px;
-        height: 5px;
-      }
-      
-      .volume-slider::-webkit-slider-thumb {
-        width: 12px;
-        height: 12px;
-      }
-      
-      /* Hide text labels on mobile to save space */
-      .icon span {
-        display: none;
-      }
-      
-      .right {
-        gap: 6px;
-      }
-    }
-
     /* Right-side controls */
     .right { 
       margin-left: auto; 
@@ -360,15 +374,6 @@
       border-radius: 12px; 
       padding: 8px 10px; 
       border: 0;
-    }
-
-    /* Mobile tap area improvements */
-    @media (max-width: 768px) {
-      .icon, .btn, .btn1 {
-        min-height: 36px;
-        min-width: 36px;
-        justify-content: center;
-      }
     }
 
     /* Fullscreen styles */
@@ -428,18 +433,6 @@
       flex-wrap: wrap;
     }
     
-    @media (max-width: 768px) {
-      .player-cta {
-        flex-direction: column;
-      }
-      
-      .player-cta .btn1 {
-        width: 100%;
-        text-align: center;
-        justify-content: center;
-      }
-    }
-    
     /* Related cards */
     .cards {
       display: grid;
@@ -448,11 +441,110 @@
       margin-top: 20px;
     }
     
-    @media (max-width: 768px) {
-      .cards {
-        grid-template-columns: 1fr;
-        gap: 15px;
-      }
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    .card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+    }
+    
+    .card-body {
+      padding: 16px;
+    }
+    
+    .tag-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-size: 12px;
+      color: #aaa;
+    }
+    
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--subject-color, #000);
+    }
+    
+    .card h4 {
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+    
+    .card p {
+      color: #ccc;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    
+    .card-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+    
+    /* Footer */
+    .footer {
+      margin-top: 60px;
+      position: relative;
+    }
+    
+    .footer-top-art {
+      height: 5px;
+      background: linear-gradient(90deg, #ff8a00, #e52e71);
+      border-radius: 5px;
+      margin-bottom: 30px;
+    }
+    
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 18px;
+      padding-top: 10px;
+      padding-bottom: 50px;
+    }
+    
+    .footer-social {
+      display: flex;
+      gap: 18px;
+    }
+    
+    .footer-menu {
+      display: flex;
+      gap: 26px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .footer-menu a {
+      color: #eaeaea;
+      text-decoration: none;
+    }
+    
+    .footer-copy {
+      font-size: 13px;
+      color: #bdbdbd;
+    }
+    
+    /* Bar separator */
+    .bar {
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
+      margin: 20px 0;
     }
     
     /* No JavaScript warning */
@@ -475,6 +567,134 @@
     .no-js .cards {
       display: none;
     }
+    
+    /* Mobile adjustments */
+    @media (max-width: 768px) {
+      .hamburger {
+        display: flex;
+      }
+      
+      .nav-links {
+        display: none;
+      }
+      
+      .player-shell {
+        border-radius: 8px;
+        aspect-ratio: 16/9;
+      }
+      
+      /* Hide volume slider on mobile */
+      .volume-slider {
+        display: none !important;
+      }
+      
+      /* Show fullscreen button on mobile */
+      #fsBtn {
+        display: inline-flex !important;
+      }
+      
+      /* Hide landscape button on mobile */
+      #lsBtn {
+        display: none !important;
+      }
+      
+      /* Hide speed control on mobile in normal view */
+      .speed {
+        display: none !important;
+      }
+      
+      /* Show speed control in mobile fullscreen */
+      .player-shell:fullscreen .speed,
+      .player-shell:-webkit-full-screen .speed,
+      .player-shell:-moz-full-screen .speed,
+      .player-shell:-ms-fullscreen .speed {
+        display: block !important;
+      }
+      
+      /* Hide controls when not interacting on mobile */
+      .player-shell:not(:hover) .controls {
+        opacity: 0;
+        pointer-events: none;
+      }
+      
+      .player-shell:hover .controls {
+        opacity: 1;
+      }
+      
+      /* Hide volume controls in normal mobile view */
+      .volume-control {
+        display: none;
+      }
+      
+      .controls {
+        padding: 8px 10px;
+      }
+      
+      .btn, .btn1, .icon {
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+      
+      .time {
+        font-size: 11px;
+        min-width: 90px;
+      }
+      
+      .seek input[type="range"] {
+        height: 5px;
+      }
+      
+      .seek input[type="range"]::-webkit-slider-thumb {
+        width: 12px;
+        height: 12px;
+      }
+      
+      .speed {
+        padding: 6px 8px;
+        font-size: 12px;
+      }
+      
+      .volume-slider {
+        width: 60px;
+        height: 5px;
+      }
+      
+      .volume-slider::-webkit-slider-thumb {
+        width: 12px;
+        height: 12px;
+      }
+      
+      /* Hide text labels on mobile to save space */
+      .icon span {
+        display: none;
+      }
+      
+      .right {
+        gap: 6px;
+      }
+      
+      /* Mobile tap area improvements */
+      .icon, .btn, .btn1 {
+        min-height: 36px;
+        min-width: 36px;
+        justify-content: center;
+      }
+      
+      .player-cta {
+        flex-direction: column;
+      }
+      
+      .player-cta .btn1 {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+      }
+      
+      .cards {
+        grid-template-columns: 1fr;
+        gap: 15px;
+      }
+    }
   </style>
 </head>
 <body class="no-js">
@@ -488,7 +708,6 @@
   <header class="header">
     <div class="container nav">
       <a class="brand" href="index.html">
-        <img alt="selenix logo">
         <div class="logo-text">Obscura Vault</div>
       </a>
       <nav class="nav-links">
@@ -502,31 +721,7 @@
       </nav>
       <button class="icon-btn hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
     </div>
-    <div class="mobile-drawer">
-      <a href="index.html">Home</a>
-      <a href="index.html#about">About</a>
-      <a href="lessons.html">Lessons</a>
-      <a href="index.html#contact">Contact</a>
-      <a href="#" data-open-search>Search</a>
-    </div>
-    <div class="mobile-searchbar">
-      <form id="mobileSearchForm">
-        <input id="mobileSearch" placeholder="Search lessons...">
-        <button type="submit">Search</button>
-      </form>
-    </div>
   </header>
-
-  <!-- Search overlay -->
-  <div class="search-overlay" id="searchOverlay">
-    <div class="search-card">
-      <h3>Search lessons</h3>
-      <div class="search-row">
-        <input id="globalSearchInput" placeholder="Type keyword...">
-        <button id="globalSearchGo">Search</button>
-      </div>
-    </div>
-  </div>
 
   <div class="container player-wrap">
     <div class="back-row">
@@ -609,39 +804,36 @@
 
     <div class="bar" style="margin:20px 0 16px"></div>
     <h3>Other parts in this lesson</h3>
-    <div class="cards" id="relatedCards"></div>
+    <div class="cards" id="relatedCards">
+      <!-- Related cards will be generated here -->
+    </div>
   </div>
 
   <!-- Footer -->
   <footer class="footer">
     <div class="footer-top-art"></div>
     <div class="container">
-      <div class="footer-inner" style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;text-align:center;gap:18px;padding-top:10px;padding-bottom:50px">
-        <div class="footer-social" style="display:flex;gap:18px">
-          <a href="https://t.me/ObscuraVaulfOfficial" target="_blank" aria-label="Telegram" title="Telegram"
-             style="width:44px;height:44px;border-radius:50%;background:#fff;color:#111;display:inline-flex;align-items:center;justify-content:center;font-size:26px;text-decoration:none">
+      <div class="footer-inner">
+        <div class="footer-social">
+          <a href="https://t.me/ObscuraVaulfOfficial" target="_blank" aria-label="Telegram" title="Telegram">
             <i class='bx bxl-telegram'></i>
           </a>
-          <a href="https://www.youtube.com/@ObscuraVault-Official" target="_blank" aria-label="YouTube" title="YouTube"
-             style="width:44px;height:44px;border-radius:50%;background:#fff;color:#111;display:inline-flex;align-items:center;justify-content:center;font-size:26px;text-decoration:none">
+          <a href="https://www.youtube.com/@ObscuraVault-Official" target="_blank" aria-label="YouTube" title="YouTube">
             <i class='bx bxl-youtube'></i>
           </a>
         </div>
-        <nav class="footer-menu" style="display:flex;gap:26px;flex-wrap:wrap;justify-content:center">
-          <a href="index.html" style="color:#eaeaea;text-decoration:none">Home</a>
-          <a href="index.html#about" style="color:#eaeaea;text-decoration:none">About</a>
-          <a href="lessons.html" style="color:#eaeaea;text-decoration:none">Lessons</a>
-          <a href="index.html#contact" style="color:#eaeaea;text-decoration:none">Contact</a>
+        <nav class="footer-menu">
+          <a href="index.html">Home</a>
+          <a href="index.html#about">About</a>
+          <a href="lessons.html">Lessons</a>
+          <a href="index.html#contact">Contact</a>
         </nav>
-        <div class="footer-copy" style="font-size:13px;color:#bdbdbd">© 2025 Obscura Vault. All Rights Reserved</div>
+        <div class="footer-copy">© 2025 Obscura Vault. All Rights Reserved</div>
       </div>
     </div>
   </footer>
 
-  <!-- Shared helpers -->
-  <script src="selenix.js"></script>
-
-  <!-- YouTube IFrame API (do not async-defer when you need onYouTubeIframeAPIReady) -->
+  <!-- YouTube IFrame API -->
   <script>
     // Load the YouTube API once (idempotent)
     (function ensureYTAPI(){
@@ -705,26 +897,25 @@
     }
   });
   
-  // Detect if dev tools are open (basic detection)
-  setInterval(function() {
-    const widthThreshold = window.outerWidth - window.innerWidth > 160;
-    const heightThreshold = window.outerHeight - window.innerHeight > 160;
-    const orientation = widthThreshold ? 'vertical' : 'horizontal';
-    
-    if (!(heightThreshold && widthThreshold) &&
-        ((window.Firebug && window.Firebug.chrome && window.Firebug.chrome.isInitialized) || 
-         widthThreshold || heightThreshold)) {
-      // Dev tools detected - redirect or show warning
-      document.body.innerHTML = '<div style="padding: 20px; text-align: center;"><h2>Developer Tools Detected</h2><p>Please close developer tools to continue using this site.</p></div>';
-      window.stop();
-    }
-  }, 1000);
-  
   // ---- State ----
-  const state = { items:[], current:null, group:null, subjects:[], colors:{}, player:null, apiReady:false, tick:null, seeking:false, isMobileFullscreen: false };
+  const state = { 
+    items: [], 
+    current: null, 
+    group: null, 
+    subjects: [], 
+    colors: {}, 
+    player: null, 
+    apiReady: false, 
+    tick: null, 
+    seeking: false, 
+    isMobileFullscreen: false 
+  };
 
   // Basic route helpers
-  function getRID(){ return new URLSearchParams(location.search).get('rid'); }
+  function getRID(){ 
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('rid'); 
+  }
 
   // Extract a YouTube videoId from common URL formats
   function extractYouTubeID(urlOrId){
@@ -810,6 +1001,11 @@
       }
     });
 
+    volumeSlider.addEventListener('input', ()=>{
+      if (!state.player) return;
+      state.player.setVolume(volumeSlider.value);
+    });
+
     // Mobile tap to play/pause
     antiIframe.addEventListener('click', (e) => {
       if (window.innerWidth <= 768) {
@@ -884,11 +1080,30 @@
     fsBtn.addEventListener('click', ()=>{
       const el = shell;
       if (!document.fullscreenElement) {
+        // Force landscape orientation on mobile when entering fullscreen
+        if (window.innerWidth <= 768) {
+          state.isMobileFullscreen = true;
+          // This will attempt to force landscape (note: browser support varies)
+          if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape').catch(() => {
+              console.log('Orientation lock not supported');
+            });
+          }
+        }
+        
         if (el.requestFullscreen) el.requestFullscreen();
         else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
         else if (el.msRequestFullscreen) el.msRequestFullscreen();
         fsBtn.innerHTML = '<i class="bx bx-exit-fullscreen"></i><span>Exit</span>';
       } else {
+        // Revert to portrait when exiting fullscreen on mobile
+        if (window.innerWidth <= 768 && state.isMobileFullscreen) {
+          state.isMobileFullscreen = false;
+          if (screen.orientation && screen.orientation.unlock) {
+            screen.orientation.unlock();
+          }
+        }
+        
         if (document.exitFullscreen) document.exitFullscreen();
         else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
         else if (document.msExitFullscreen) document.msExitFullscreen();
@@ -899,6 +1114,13 @@
     // Handle fullscreen change events
     document.addEventListener('fullscreenchange', () => {
       if (!document.fullscreenElement) {
+        // Revert to portrait when exiting fullscreen on mobile
+        if (window.innerWidth <= 768 && state.isMobileFullscreen) {
+          state.isMobileFullscreen = false;
+          if (screen.orientation && screen.orientation.unlock) {
+            screen.orientation.unlock();
+          }
+        }
         fsBtn.innerHTML = '<i class="bx bx-fullscreen"></i><span>Full</span>';
       } else {
         fsBtn.innerHTML = '<i class="bx bx-exit-fullscreen"></i><span>Exit</span>';
@@ -919,6 +1141,11 @@
         seekBar.value = Math.round((cur / dur) * 1000);
         tL.textContent = fmt(cur);
         tR.textContent = fmt(dur);
+      }
+
+      // Update volume slider if not being interacted with
+      if (!volumeSlider.matches(':active')) {
+        volumeSlider.value = isMuted ? 0 : vol;
       }
 
       // Update volume icon if not being interacted with
@@ -991,49 +1218,78 @@
     // Related parts
     const rel = document.getElementById('relatedCards');
     rel.innerHTML = '';
-    if (state.group){
-      state.group.parts.forEach(p=>{
-        const card = document.createElement('div'); card.className='card';
-        const img = document.createElement('img'); img.src = p.thumb || ''; img.alt = p.partTitle || 'thumbnail';
-        card.appendChild(img);
-        const body = document.createElement('div'); body.className='card-body';
-        const tag = document.createElement('div'); tag.className='tag-row';
-        const dot = document.createElement('span'); dot.className='dot'; dot.style.setProperty('--subject-color', state.colors[state.group.subject]||'#000');
-        tag.appendChild(dot);
-        tag.appendChild(document.createTextNode(`${state.group.subject}`));
-        const h4 = document.createElement('h4'); h4.textContent = p.partTitle || '';
-        const desc = document.createElement('p'); desc.textContent = p.description || '';
-        const actions = document.createElement('div'); actions.className='card-actions';
-        const open = document.createElement('button'); open.className='btn1'; open.textContent = (p.id === state.current.id) ? 'Now Playing' : 'Play';
-        open.disabled = (p.id === state.current.id);
-        open.addEventListener('click', ()=>window.location.href=`player.html?rid=${encodeURIComponent(p.id)}`);
-        actions.appendChild(open);
-        body.appendChild(tag); body.appendChild(h4); body.appendChild(desc); body.appendChild(actions);
-        card.appendChild(body);
-        rel.appendChild(card);
-      });
-    }
+    
+    // Create sample related content for demonstration
+    const sampleParts = [
+      { id: '1', partTitle: 'Introduction to the Course', description: 'Learn the basics and get started with our comprehensive course.', thumb: 'https://i.ytimg.com/vi/9i_UWs0tgJw/hqdefault.jpg' },
+      { id: '2', partTitle: 'Advanced Techniques', description: 'Dive deeper into advanced methods and strategies.', thumb: 'https://i.ytimg.com/vi/9i_UWs0tgJw/hqdefault.jpg' },
+      { id: '3', partTitle: 'Practical Applications', description: 'See how to apply these techniques in real-world scenarios.', thumb: 'https://i.ytimg.com/vi/9i_UWs0tgJw/hqdefault.jpg' }
+    ];
+    
+    sampleParts.forEach(p=>{
+      const card = document.createElement('div'); 
+      card.className='card';
+      
+      const img = document.createElement('img'); 
+      img.src = p.thumb || ''; 
+      img.alt = p.partTitle || 'thumbnail';
+      card.appendChild(img);
+      
+      const body = document.createElement('div'); 
+      body.className='card-body';
+      
+      const tag = document.createElement('div'); 
+      tag.className='tag-row';
+      
+      const dot = document.createElement('span'); 
+      dot.className='dot'; 
+      dot.style.setProperty('--subject-color', '#4a6bff');
+      tag.appendChild(dot);
+      tag.appendChild(document.createTextNode('Tutorial'));
+      
+      const h4 = document.createElement('h4'); 
+      h4.textContent = p.partTitle || '';
+      
+      const desc = document.createElement('p'); 
+      desc.textContent = p.description || '';
+      
+      const actions = document.createElement('div'); 
+      actions.className='card-actions';
+      
+      const open = document.createElement('button'); 
+      open.className='btn1'; 
+      open.textContent = (p.id === '1') ? 'Now Playing' : 'Play';
+      open.disabled = (p.id === '1');
+      open.addEventListener('click', ()=>window.location.href=`player.html?rid=${encodeURIComponent(p.id)}`);
+      
+      actions.appendChild(open);
+      body.appendChild(tag); 
+      body.appendChild(h4); 
+      body.appendChild(desc); 
+      body.appendChild(actions);
+      card.appendChild(body);
+      rel.appendChild(card);
+    });
   }
 
   // Boot
   async function boot(){
-    selenix.initHeader();
-
     // Back button functionality
     document.querySelector('[data-back]').addEventListener('click', () => {
       window.history.back();
     });
 
     try {
-      state.items = await selenix.fetchSheet();
-      state.subjects = selenix.uniqueSubjects(state.items);
-      state.colors = selenix.subjectColorMap(state.subjects);
-      const rid = getRID();
-      state.current = state.items.find(x=>x.id===rid);
-      if (state.current){
-        const groups = selenix.groupByLesson(state.items);
-        state.group = groups.find(g=>g.subject===state.current.subject && g.lesson===state.current.lesson);
-      }
+      // For demo purposes, create a sample current item
+      state.current = {
+        id: '1',
+        lesson: 'Advanced Photography',
+        partTitle: 'Mastering Light and Shadow',
+        youtube: '9i_UWs0tgJw',
+        telegram: '#',
+        resource: '#'
+      };
+      
       renderPlayer();
 
       // Wait YouTube API then init
