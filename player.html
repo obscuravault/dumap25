@@ -33,6 +33,21 @@
         border-radius: 8px;
         aspect-ratio: 16/9;
       }
+      
+      /* Hide volume slider on mobile */
+      .volume-slider {
+        display: none !important;
+      }
+      
+      /* Show fullscreen button on mobile */
+      #fsBtn {
+        display: inline-flex !important;
+      }
+      
+      /* Hide landscape button on mobile */
+      #lsBtn {
+        display: none !important;
+      }
     }
     
     /*Watermark Image*/
@@ -131,24 +146,9 @@
         opacity: 1;
       }
       
-      /* Hide landscape button on desktop, show on mobile */
-      #lsBtn {
-        display: inline-flex;
-      }
-      
-      /* Hide regular fullscreen button on mobile */
-      #fsBtn {
-        display: none;
-      }
-      
       /* Hide volume controls in normal mobile view */
       .volume-control {
         display: none;
-      }
-      
-      /* Show volume controls in landscape fullscreen on mobile */
-      .landscape-fullscreen .volume-control {
-        display: flex;
       }
     }
     
@@ -344,11 +344,6 @@
       .right {
         gap: 6px;
       }
-      
-      /* Hide volume slider on mobile */
-      .volume-slider {
-        display: none !important;
-      }
     }
 
     /* Right-side controls */
@@ -376,8 +371,8 @@
       }
     }
 
-    /* Landscape fullscreen styles */
-    .landscape-fullscreen {
+    /* Fullscreen styles for mobile landscape */
+    .mobile-fullscreen {
       position: fixed;
       top: 0;
       left: 0;
@@ -388,28 +383,9 @@
       border-radius: 0;
     }
     
-    .landscape-fullscreen .controls {
+    .mobile-fullscreen .controls {
       padding: 15px;
       background: linear-gradient(to top, rgba(0,0,0,.85), rgba(0,0,0,.0));
-    }
-    
-    /* Force landscape orientation in fullscreen */
-    @media (max-width: 768px) {
-      .landscape-fullscreen {
-        transform: rotate(90deg);
-        transform-origin: bottom left;
-        width: 100vh;
-        height: 100vw;
-        top: 0;
-        left: 100vw;
-      }
-      
-      .landscape-fullscreen .yt-host,
-      .landscape-fullscreen .yt-iframe,
-      .landscape-fullscreen .anti-iframe {
-        width: 100vh;
-        height: 100vw;
-      }
     }
     
     /* Prevent image/element dragging */
@@ -733,7 +709,7 @@
   }, 1000);
   
   // ---- State ----
-  const state = { items:[], current:null, group:null, subjects:[], colors:{}, player:null, apiReady:false, tick:null, seeking:false, isLandscapeFullscreen: false };
+  const state = { items:[], current:null, group:null, subjects:[], colors:{}, player:null, apiReady:false, tick:null, seeking:false, isMobileFullscreen: false };
 
   // Basic route helpers
   function getRID(){ return new URLSearchParams(location.search).get('rid'); }
@@ -791,17 +767,11 @@
 
     // Show/hide buttons based on device
     if (window.innerWidth <= 768) {
-      lsBtn.style.display = 'inline-flex';
-      fsBtn.style.display = 'none';
-      
-      // Hide volume slider on mobile
-      volumeSlider.style.display = 'none';
-    } else {
-      lsBtn.style.display = 'none';
       fsBtn.style.display = 'inline-flex';
-      
-      // Show volume slider on desktop
-      volumeSlider.style.display = 'block';
+      lsBtn.style.display = 'none';
+    } else {
+      fsBtn.style.display = 'inline-flex';
+      lsBtn.style.display = 'none';
     }
 
     // Play/Pause
@@ -822,25 +792,9 @@
       if (isMuted) {
         state.player.unMute();
         volumeIcon.className = 'bx bx-volume-full';
-        volumeSlider.value = state.player.getVolume() || 100;
       } else {
         state.player.mute();
         volumeIcon.className = 'bx bx-volume-mute';
-      }
-    });
-
-    volumeSlider.addEventListener('input', ()=>{
-      if (!state.player) return;
-      const volume = parseInt(volumeSlider.value);
-      state.player.setVolume(volume);
-      
-      // Update mute icon based on volume level
-      if (volume === 0) {
-        volumeIcon.className = 'bx bx-volume-mute';
-      } else if (volume < 50) {
-        volumeIcon.className = 'bx bx-volume-low';
-      } else {
-        volumeIcon.className = 'bx bx-volume-full';
       }
     });
 
@@ -914,69 +868,49 @@
       }
     });
 
-    // Landscape Fullscreen
-    lsBtn.addEventListener('click', ()=>{
+    // Fullscreen for mobile (forces landscape)
+    fsBtn.addEventListener('click', ()=>{
       if (window.innerWidth <= 768) { // Only allow on mobile
-        if (state.isLandscapeFullscreen) {
-          // Exit landscape fullscreen
-          shell.classList.remove('landscape-fullscreen');
+        if (state.isMobileFullscreen) {
+          // Exit mobile fullscreen
+          shell.classList.remove('mobile-fullscreen');
           document.body.style.overflow = '';
-          lsBtn.innerHTML = '<i class="bx bx-expand-horizontal"></i><span>Landscape</span>';
-          state.isLandscapeFullscreen = false;
-          
-          // Lock to portrait orientation
           screen.orientation.unlock();
+          fsBtn.innerHTML = '<i class="bx bx-fullscreen"></i><span>Full</span>';
+          state.isMobileFullscreen = false;
         } else {
-          // Enter landscape fullscreen
-          shell.classList.add('landscape-fullscreen');
+          // Enter mobile fullscreen
+          shell.classList.add('mobile-fullscreen');
           document.body.style.overflow = 'hidden';
-          lsBtn.innerHTML = '<i class="bx bx-collapse-horizontal"></i><span>Exit</span>';
-          state.isLandscapeFullscreen = true;
+          fsBtn.innerHTML = '<i class="bx bx-exit-fullscreen"></i><span>Exit</span>';
+          state.isMobileFullscreen = true;
           
-          // Lock to landscape orientation if supported
+          // Lock to landscape orientation
           if (screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock('landscape').catch(() => {
-              console.log('Orientation lock not supported');
+            screen.orientation.lock('landscape').catch(err => {
+              console.log('Orientation lock failed: ', err);
             });
           }
-          
-          // If in fullscreen, exit it first
-          if (document.fullscreenElement) {
-            if (document.exitFullscreen) document.exitFullscreen();
-          }
         }
-      }
-    });
-
-    // Fullscreen
-    fsBtn.addEventListener('click', ()=>{
-      // Don't allow regular fullscreen on mobile
-      if (window.innerWidth <= 768) return;
-      
-      // If in landscape mode, exit it first
-      if (state.isLandscapeFullscreen) {
-        shell.classList.remove('landscape-fullscreen');
-        document.body.style.overflow = '';
-        lsBtn.innerHTML = '<i class="bx bx-expand-horizontal"></i><span>Landscape</span>';
-        state.isLandscapeFullscreen = false;
-      }
-      
-      const el = shell;
-      if (!document.fullscreenElement) {
-        if (el.requestFullscreen) el.requestFullscreen();
-        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-        else if (el.msRequestFullscreen) el.msRequestFullscreen();
       } else {
-        if (document.exitFullscreen) document.exitFullscreen();
-        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-        else if (document.msExitFullscreen) document.msExitFullscreen();
+        // Desktop fullscreen
+        const el = shell;
+        if (!document.fullscreenElement) {
+          if (el.requestFullscreen) el.requestFullscreen();
+          else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+          else if (el.msRequestFullscreen) el.msRequestFullscreen();
+        } else {
+          if (document.exitFullscreen) document.exitFullscreen();
+          else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+          else if (document.msExitFullscreen) document.msExitFullscreen();
+        }
       }
     });
 
     // Handle fullscreen change events
     document.addEventListener('fullscreenchange', () => {
-      if (!document.fullscreenElement && state.isLandscapeFullscreen) {
-        // If exiting fullscreen while in landscape mode, update button text
+      if (!document.fullscreenElement && state.isMobileFullscreen) {
+        // If exiting fullscreen while in mobile fullscreen mode, update button text
         fsBtn.innerHTML = '<i class="bx bx-fullscreen"></i><span>Full</span>';
       }
     });
@@ -997,17 +931,13 @@
         tR.textContent = fmt(dur);
       }
 
-      // Update volume slider and icon if not being interacted with
-      if (!volumeSlider.matches(':focus')) {
-        volumeSlider.value = isMuted ? 0 : vol;
-        
-        if (isMuted || vol === 0) {
-          volumeIcon.className = 'bx bx-volume-mute';
-        } else if (vol < 50) {
-          volumeIcon.className = 'bx bx-volume-low';
-        } else {
-          volumeIcon.className = 'bx bx-volume-full';
-        }
+      // Update volume icon if not being interacted with
+      if (isMuted || vol === 0) {
+        volumeIcon.className = 'bx bx-volume-mute';
+      } else if (vol < 50) {
+        volumeIcon.className = 'bx bx-volume-low';
+      } else {
+        volumeIcon.className = 'bx bx-volume-full';
       }
 
       // icon/label
