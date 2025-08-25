@@ -48,6 +48,11 @@
       #lsBtn {
         display: none !important;
       }
+      
+      /* HIDE PLAYBACK SPEED ON MOBILE BY DEFAULT */
+      .speed {
+          display: none !important;
+      }
     }
     
     /*Watermark Image*/
@@ -781,9 +786,11 @@
     if (window.innerWidth <= 768) {
       fsBtn.style.display = 'inline-flex';
       lsBtn.style.display = 'none';
+      speed.style.display = 'none';
     } else {
       fsBtn.style.display = 'inline-flex';
       lsBtn.style.display = 'none';
+      speed.style.display = 'block'; // Or 'inline-flex'
     }
 
     // Play/Pause
@@ -884,7 +891,24 @@
     fsBtn.addEventListener('click', ()=>{
       const el = shell;
       if (!document.fullscreenElement) {
-        if (el.requestFullscreen) el.requestFullscreen();
+        if (el.requestFullscreen) {
+            // Force landscape on mobile fullscreen
+            if (window.innerWidth <= 768 && screen.orientation) {
+                try {
+                    screen.orientation.lock('landscape').then(() => {
+                        el.requestFullscreen();
+                    }).catch(e => {
+                        console.error('Failed to lock orientation:', e);
+                        el.requestFullscreen();
+                    });
+                } catch (e) {
+                    console.error('Orientation lock API not available:', e);
+                    el.requestFullscreen();
+                }
+            } else {
+                el.requestFullscreen();
+            }
+        }
         else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
         else if (el.msRequestFullscreen) el.msRequestFullscreen();
         fsBtn.innerHTML = '<i class="bx bx-exit-fullscreen"></i><span>Exit</span>';
@@ -900,8 +924,22 @@
     document.addEventListener('fullscreenchange', () => {
       if (!document.fullscreenElement) {
         fsBtn.innerHTML = '<i class="bx bx-fullscreen"></i><span>Full</span>';
+        if (window.innerWidth <= 768) {
+            speed.style.display = 'none';
+            // Unlock orientation on exit fullscreen
+            if (screen.orientation) {
+                try {
+                    screen.orientation.unlock();
+                } catch (e) {
+                    console.error('Orientation unlock API not available:', e);
+                }
+            }
+        }
       } else {
         fsBtn.innerHTML = '<i class="bx bx-exit-fullscreen"></i><span>Exit</span>';
+        if (window.innerWidth <= 768) {
+            speed.style.display = 'inline-flex';
+        }
       }
     });
 
