@@ -138,6 +138,8 @@
       state.activeSubject = label;
       buildSubjectChips();
       renderLessons();
+      // Added this line to close the modal after a chip is clicked
+      document.getElementById('subjectPicker').classList.remove('open');
     });
     return el;
   }
@@ -245,9 +247,3 @@
 </body>
 
 </html>
-
-
-
-
-
-
