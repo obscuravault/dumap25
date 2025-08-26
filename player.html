@@ -384,6 +384,25 @@
       letter-spacing: 0.5px;
       margin-bottom: 4px;
     }
+    
+    /* Back button style */
+    .settings-menu .back-button {
+        background: transparent;
+        border: none;
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 8px;
+        text-align: left;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .settings-menu .back-button:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
 
     .settings-menu .menu-item {
       background: transparent;
@@ -939,6 +958,9 @@
     // Settings Menu logic
     settingsBtn.addEventListener('click', (e) => {
       settingsMenu.classList.toggle('active');
+      if (settingsMenu.classList.contains('active')) {
+          renderMainMenu();
+      }
       e.stopPropagation(); // Prevent the body click listener from firing immediately
     });
 
@@ -1040,68 +1062,80 @@
     }, 200);
   }
 
-  function renderSettingsMenu() {
+  // Renders the main settings menu with speed and quality options
+  function renderMainMenu() {
+    const settingsMenu = $('#settingsMenu');
+    settingsMenu.innerHTML = '';
+    
+    const speedBtn = document.createElement('button');
+    speedBtn.className = 'menu-item';
+    speedBtn.innerHTML = 'Playback Speed <i class="bx bx-chevron-right"></i>';
+    speedBtn.addEventListener('click', () => renderSettingsMenu('speed'));
+    settingsMenu.appendChild(speedBtn);
+
+    const qualityBtn = document.createElement('button');
+    qualityBtn.className = 'menu-item';
+    qualityBtn.innerHTML = 'Quality <i class="bx bx-chevron-right"></i>';
+    qualityBtn.addEventListener('click', () => renderSettingsMenu('quality'));
+    settingsMenu.appendChild(qualityBtn);
+  }
+
+  // Renders the sub-menus for speed or quality
+  function renderSettingsMenu(menuType) {
     if (!state.player) return;
     const settingsMenu = $('#settingsMenu');
     settingsMenu.innerHTML = ''; // Clear existing items
 
-    // --- Playback Speed Section ---
-    const speedSection = document.createElement('div');
-    speedSection.className = 'menu-section';
-    speedSection.innerHTML = '<div class="menu-title">Playback Speed</div>';
+    // Add back button
+    const backBtn = document.createElement('button');
+    backBtn.className = 'back-button';
+    backBtn.innerHTML = '<i class="bx bx-arrow-back"></i> Back';
+    backBtn.addEventListener('click', renderMainMenu);
+    settingsMenu.appendChild(backBtn);
     
-    const rates = state.player.getAvailablePlaybackRates?.() || [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
-    const currentRate = state.player.getPlaybackRate();
-    rates.forEach(rate => {
-      const btn = document.createElement('button');
-      btn.className = 'menu-item';
-      btn.textContent = rate === 1 ? 'Normal' : `${rate}x`;
-      btn.dataset.rate = rate;
-      if (rate === currentRate) {
-        btn.classList.add('active');
-      }
-      btn.innerHTML += '<i class="bx bx-check checkmark"></i>';
-      btn.addEventListener('click', () => {
-        state.player.setPlaybackRate(rate);
-        $$('#settingsMenu .menu-section:first-child .menu-item').forEach(el => el.classList.remove('active'));
-        btn.classList.add('active');
-        settingsMenu.classList.remove('active');
+    if (menuType === 'speed') {
+      // --- Playback Speed Section ---
+      const rates = state.player.getAvailablePlaybackRates?.() || [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+      const currentRate = state.player.getPlaybackRate();
+      rates.forEach(rate => {
+        const btn = document.createElement('button');
+        btn.className = 'menu-item';
+        btn.textContent = rate === 1 ? 'Normal' : `${rate}x`;
+        btn.dataset.rate = rate;
+        if (rate === currentRate) {
+          btn.classList.add('active');
+        }
+        btn.addEventListener('click', () => {
+          state.player.setPlaybackRate(rate);
+          $$('#settingsMenu .menu-item').forEach(el => el.classList.remove('active'));
+          btn.classList.add('active');
+        });
+        settingsMenu.appendChild(btn);
       });
-      speedSection.appendChild(btn);
-    });
-    settingsMenu.appendChild(speedSection);
+    } else if (menuType === 'quality') {
+      // --- Quality Section ---
+      const qualityLevels = state.player.getAvailableQualityLevels?.() || ['highres', 'hd1080', 'hd720', 'large', 'medium', 'small', 'auto'];
+      const currentQuality = state.player.getPlaybackQuality();
 
-    // --- Quality Section ---
-    const qualitySection = document.createElement('div');
-    qualitySection.className = 'menu-section';
-    qualitySection.innerHTML = '<div class="menu-title">Quality</div>';
-
-    const qualityLevels = state.player.getAvailableQualityLevels?.() || ['highres', 'hd1080', 'hd720', 'large', 'medium', 'small', 'auto'];
-    const currentQuality = state.player.getPlaybackQuality();
-
-    qualityLevels.forEach(quality => {
-      const btn = document.createElement('button');
-      btn.className = 'menu-item';
-      // YouTube API returns a mix of string and numeric quality levels.
-      // Normalize them for display.
-      const qualityDisplay = quality.replace('hd', '').replace('res', '').toUpperCase();
-      btn.textContent = quality === 'auto' ? 'Auto' : `${qualityDisplay}p`;
-      btn.dataset.quality = quality;
-      if (quality === currentQuality) {
-        btn.classList.add('active');
-      }
-      btn.innerHTML += '<i class="bx bx-check checkmark"></i>';
-      btn.addEventListener('click', () => {
-        state.player.setPlaybackQuality(quality);
-        $$('#settingsMenu .menu-section:last-child .menu-item').forEach(el => el.classList.remove('active'));
-        btn.classList.add('active');
-        settingsMenu.classList.remove('active');
+      qualityLevels.forEach(quality => {
+        const btn = document.createElement('button');
+        btn.className = 'menu-item';
+        const qualityDisplay = quality.replace('hd', '').replace('res', '').toUpperCase();
+        btn.textContent = quality === 'auto' ? 'Auto' : `${qualityDisplay}p`;
+        btn.dataset.quality = quality;
+        if (quality === currentQuality) {
+          btn.classList.add('active');
+        }
+        btn.addEventListener('click', () => {
+          state.player.setPlaybackQuality(quality);
+          $$('#settingsMenu .menu-item').forEach(el => el.classList.remove('active'));
+          btn.classList.add('active');
+        });
+        settingsMenu.appendChild(btn);
       });
-      qualitySection.appendChild(btn);
-    });
-    settingsMenu.appendChild(qualitySection);
+    }
   }
-
+  
   // Initialize YT Player for the current item
   function initYT(videoId){
     const host = document.getElementById('ytPlayer');
@@ -1122,17 +1156,32 @@
       },
       events: {
         onReady: (e) => {
-          renderSettingsMenu();
           wireControls();
+          renderMainMenu(); // Initial render of the main menu
         },
         onStateChange: (e) => {
           // Re-render settings menu on state change to update active quality
           if (e.data === YT.PlayerState.PLAYING) {
-            renderSettingsMenu();
+            // Re-render the correct menu to show updated active state
+            const settingsMenu = $('#settingsMenu');
+            if (settingsMenu.classList.contains('active')) {
+                 // Check which menu is currently displayed
+                 const isSpeedMenu = settingsMenu.querySelector('[data-rate]');
+                 if (isSpeedMenu) {
+                     renderSettingsMenu('speed');
+                 } else {
+                     renderSettingsMenu('quality');
+                 }
+            }
           }
         },
         onPlaybackQualityChange: (e) => {
-          renderSettingsMenu();
+           // If the quality menu is open, re-render it to show the new active quality
+           const settingsMenu = $('#settingsMenu');
+           const isQualityMenu = settingsMenu.querySelector('[data-quality]');
+           if (settingsMenu.classList.contains('active') && isQualityMenu) {
+               renderSettingsMenu('quality');
+           }
         }
       }
     });
