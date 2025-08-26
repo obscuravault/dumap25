@@ -48,11 +48,6 @@
       #lsBtn {
         display: none !important;
       }
-      
-      /* HIDE PLAYBACK SPEED ON MOBILE BY DEFAULT */
-      .speed {
-          display: none !important;
-      }
     }
     
     /*Watermark Image*/
@@ -326,11 +321,6 @@
         height: 12px;
       }
       
-      .speed {
-        padding: 6px 8px;
-        font-size: 12px;
-      }
-      
       .volume-slider {
         width: 60px;
         height: 5px;
@@ -357,14 +347,72 @@
       display: flex; 
       align-items: center; 
       gap: 8px; 
+      position: relative; /* For settings menu positioning */
     }
     
-    .speed {
-      background: rgba(255,255,255,.12);
-      color: #fff; 
-      border-radius: 12px; 
-      padding: 8px 10px; 
-      border: 0;
+    /* Settings menu */
+    .settings-menu {
+      position: absolute;
+      bottom: 100%;
+      right: 0;
+      min-width: 150px;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 12px;
+      display: none; /* Initially hidden */
+      flex-direction: column;
+      gap: 12px;
+      transform: translateY(-8px);
+      transition: all 0.2s ease-in-out;
+    }
+    
+    .settings-menu.active {
+      display: flex;
+    }
+
+    .settings-menu .menu-section {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .settings-menu .menu-title {
+      color: #aaa;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .settings-menu .menu-item {
+      background: transparent;
+      border: none;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s ease;
+      white-space: nowrap;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .settings-menu .menu-item.active,
+    .settings-menu .menu-item:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .menu-item .checkmark {
+      display: none;
+      color: #00ff00;
+    }
+    
+    .menu-item.active .checkmark {
+      display: inline-block;
     }
 
     /* Mobile tap area improvements */
@@ -578,20 +626,14 @@
           </div>
 
           <div class="right">
-            <select class="speed" id="speed" aria-label="Playback speed">
-              <option value="0.5">0.5×</option>
-              <option value="0.75">0.75×</option>
-              <option value="1" selected>1×</option>
-              <option value="1.25">1.25×</option>
-              <option value="1.5">1.5×</option>
-              <option value="1.75">1.75×</option>
-              <option value="2">2×</option>
-            </select>
-
-            <button class="icon" id="pipBtn" aria-label="Picture in Picture">
-              <i class='bx bx-window'></i>
-              <span>PiP</span>
+            <!-- Settings button and menu -->
+            <button class="icon" id="settingsBtn" aria-label="Settings">
+              <i class='bx bx-cog'></i>
+              <span>Settings</span>
             </button>
+            <div class="settings-menu" id="settingsMenu">
+              <!-- Playback speed and quality options will be populated here -->
+            </div>
 
             <button class="icon" id="lsBtn" aria-label="Landscape Fullscreen" style="display: none;">
               <i class='bx bx-expand-horizontal'></i>
@@ -771,8 +813,8 @@
     const seekBar = $('#seekBar');
     const tL = $('#timeLeft');
     const tR = $('#timeRight');
-    const speed = $('#speed');
-    const pipBtn = $('#pipBtn');
+    const settingsBtn = $('#settingsBtn');
+    const settingsMenu = $('#settingsMenu');
     const lsBtn = $('#lsBtn');
     const fsBtn = $('#fsBtn');
     const muteBtn = $('#muteBtn');
@@ -783,15 +825,11 @@
     const videoElement = $('#ytPlayer');
     let lastVolume = state.player.getVolume();
 
-    // Show/hide buttons based on device
+    // Show/hide settings button on mobile
     if (window.innerWidth <= 768) {
-      fsBtn.style.display = 'inline-flex';
-      lsBtn.style.display = 'none';
-      speed.style.display = 'none';
+      settingsBtn.style.display = 'inline-flex';
     } else {
-      fsBtn.style.display = 'inline-flex';
-      lsBtn.style.display = 'none';
-      speed.style.display = 'block'; // Or 'inline-flex'
+      settingsBtn.style.display = 'inline-flex';
     }
 
     // Play/Pause
@@ -889,27 +927,16 @@
       state.seeking = false;
     });
 
-    // Speed
-    speed.addEventListener('change', ()=>{
-      if (!state.player) return;
-      const rate = parseFloat(speed.value);
-      state.player.setPlaybackRate(rate);
+    // Settings Menu logic
+    settingsBtn.addEventListener('click', (e) => {
+      settingsMenu.classList.toggle('active');
+      e.stopPropagation(); // Prevent the body click listener from firing immediately
     });
 
-    // Picture in Picture
-    pipBtn.addEventListener('click', async ()=>{
-      try {
-        if (document.pictureInPictureElement) {
-          await document.exitPictureInPicture();
-        } else if (document.pictureInPictureEnabled) {
-          // For YouTube iframe, we need to request PiP on the iframe
-          const iframe = $('#ytPlayer');
-          if (iframe && iframe.requestPictureInPicture) {
-            await iframe.requestPictureInPicture();
-          }
-        }
-      } catch (error) {
-        console.error('Picture-in-Picture failed:', error);
+    // Close settings menu when clicking outside
+    document.body.addEventListener('click', (e) => {
+      if (!settingsMenu.contains(e.target) && !settingsBtn.contains(e.target)) {
+        settingsMenu.classList.remove('active');
       }
     });
 
@@ -951,7 +978,6 @@
       if (!document.fullscreenElement) {
         fsBtn.innerHTML = '<i class="bx bx-fullscreen"></i><span>Full</span>';
         if (window.innerWidth <= 768) {
-            speed.style.display = 'none';
             // Unlock orientation on exit fullscreen
             if (screen.orientation) {
                 try {
@@ -963,9 +989,6 @@
         }
       } else {
         fsBtn.innerHTML = '<i class="bx bx-exit-fullscreen"></i><span>Exit</span>';
-        if (window.innerWidth <= 768) {
-            speed.style.display = 'inline-flex';
-        }
       }
     });
 
@@ -1008,6 +1031,68 @@
     }, 200);
   }
 
+  function renderSettingsMenu() {
+    if (!state.player) return;
+    const settingsMenu = $('#settingsMenu');
+    settingsMenu.innerHTML = ''; // Clear existing items
+
+    // --- Playback Speed Section ---
+    const speedSection = document.createElement('div');
+    speedSection.className = 'menu-section';
+    speedSection.innerHTML = '<div class="menu-title">Playback Speed</div>';
+    
+    const rates = state.player.getAvailablePlaybackRates?.() || [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+    const currentRate = state.player.getPlaybackRate();
+    rates.forEach(rate => {
+      const btn = document.createElement('button');
+      btn.className = 'menu-item';
+      btn.textContent = rate === 1 ? 'Normal' : `${rate}x`;
+      btn.dataset.rate = rate;
+      if (rate === currentRate) {
+        btn.classList.add('active');
+      }
+      btn.innerHTML += '<i class="bx bx-check checkmark"></i>';
+      btn.addEventListener('click', () => {
+        state.player.setPlaybackRate(rate);
+        $$('#settingsMenu .menu-section:first-child .menu-item').forEach(el => el.classList.remove('active'));
+        btn.classList.add('active');
+        settingsMenu.classList.remove('active');
+      });
+      speedSection.appendChild(btn);
+    });
+    settingsMenu.appendChild(speedSection);
+
+    // --- Quality Section ---
+    const qualitySection = document.createElement('div');
+    qualitySection.className = 'menu-section';
+    qualitySection.innerHTML = '<div class="menu-title">Quality</div>';
+
+    const qualityLevels = state.player.getAvailableQualityLevels?.() || ['highres', 'hd1080', 'hd720', 'large', 'medium', 'small', 'auto'];
+    const currentQuality = state.player.getPlaybackQuality();
+
+    qualityLevels.forEach(quality => {
+      const btn = document.createElement('button');
+      btn.className = 'menu-item';
+      // YouTube API returns a mix of string and numeric quality levels.
+      // Normalize them for display.
+      const qualityDisplay = quality.replace('hd', '').replace('res', '').toUpperCase();
+      btn.textContent = quality === 'auto' ? 'Auto' : `${qualityDisplay}p`;
+      btn.dataset.quality = quality;
+      if (quality === currentQuality) {
+        btn.classList.add('active');
+      }
+      btn.innerHTML += '<i class="bx bx-check checkmark"></i>';
+      btn.addEventListener('click', () => {
+        state.player.setPlaybackQuality(quality);
+        $$('#settingsMenu .menu-section:last-child .menu-item').forEach(el => el.classList.remove('active'));
+        btn.classList.add('active');
+        settingsMenu.classList.remove('active');
+      });
+      qualitySection.appendChild(btn);
+    });
+    settingsMenu.appendChild(qualitySection);
+  }
+
   // Initialize YT Player for the current item
   function initYT(videoId){
     const host = document.getElementById('ytPlayer');
@@ -1028,15 +1113,17 @@
       },
       events: {
         onReady: (e) => {
-          // populate available rates into the menu
-          const rates = state.player.getAvailablePlaybackRates?.() || [0.5,0.75,1,1.25,1.5,1.75,2];
-          const speedSel = $('#speed');
-          const currentOptions = Array.from(speedSel.options).map(o=>parseFloat(o.value));
-          // refresh only if differs
-          if (JSON.stringify(currentOptions) !== JSON.stringify(rates)) {
-            speedSel.innerHTML = rates.map(r=>`<option value="${r}" ${r===1?'selected':''}>${r}×</option>`).join('');
-          }
+          renderSettingsMenu();
           wireControls();
+        },
+        onStateChange: (e) => {
+          // Re-render settings menu on state change to update active quality
+          if (e.data === YT.PlayerState.PLAYING) {
+            renderSettingsMenu();
+          }
+        },
+        onPlaybackQualityChange: (e) => {
+          renderSettingsMenu();
         }
       }
     });
