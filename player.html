@@ -1107,6 +1107,7 @@
         }
         btn.addEventListener('click', () => {
           state.player.setPlaybackRate(rate);
+          // Update the active state immediately
           $$('#settingsMenu .menu-item').forEach(el => el.classList.remove('active'));
           btn.classList.add('active');
         });
@@ -1128,6 +1129,7 @@
         }
         btn.addEventListener('click', () => {
           state.player.setPlaybackQuality(quality);
+          // Update the active state immediately
           $$('#settingsMenu .menu-item').forEach(el => el.classList.remove('active'));
           btn.classList.add('active');
         });
