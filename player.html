@@ -406,13 +406,22 @@
       background: rgba(255, 255, 255, 0.2);
     }
     
-    .menu-item .checkmark {
-      display: none;
-      color: #00ff00;
+    /* Changes to match the image style */
+    .settings-menu .menu-item {
+        justify-content: flex-start; /* Align text to the left */
+        gap: 10px; /* Add space between dot and text */
+        padding: 6px 12px; /* Adjust padding for a tighter list */
+    }
+
+    .settings-menu .menu-item.active::before {
+        content: '\2022'; /* Unicode for a bullet point */
+        color: #fff;
+        font-size: 1.2em;
+        line-height: 1;
     }
     
-    .menu-item.active .checkmark {
-      display: inline-block;
+    .settings-menu .menu-item .checkmark {
+      display: none;
     }
 
     /* Mobile tap area improvements */
