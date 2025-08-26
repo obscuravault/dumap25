@@ -309,8 +309,9 @@
       }
 
       .btn, .btn1, .icon {
-        padding: 6px 10px;
-        font-size: 12px;
+        min-height: 36px;
+        min-width: 36px;
+        justify-content: center;
       }
 
       .time {
@@ -371,6 +372,7 @@
       gap: 12px;
       transform: translateY(-8px);
       transition: all 0.2s ease-in-out;
+      overflow-y: auto; /* Enable scrolling if content exceeds max height */
     }
 
     .settings-menu.active {
@@ -963,6 +965,8 @@
 
     // Settings Menu logic
     settingsBtn.addEventListener('click', (e) => {
+      // Calculate and set the menu's max height before showing it
+      updateMenuHeight();
       settingsMenu.classList.toggle('active');
       if (settingsMenu.classList.contains('active')) {
           renderSettingsMenu();
@@ -1095,6 +1099,17 @@
     });
   }
 
+  // Dynamically sets the max height of the settings menu to half the player's height.
+  function updateMenuHeight() {
+      const playerShell = $('#playerShell');
+      const settingsMenu = $('#settingsMenu');
+      if (playerShell && settingsMenu) {
+          const playerHeight = playerShell.offsetHeight;
+          const maxMenuHeight = playerHeight / 2;
+          settingsMenu.style.maxHeight = `${maxMenuHeight}px`;
+      }
+  }
+
   // Initialize YT Player for the current item
   function initYT(videoId){
     const host = document.getElementById('ytPlayer');
@@ -1117,6 +1132,8 @@
         onReady: (e) => {
           wireControls();
           renderSettingsMenu(); // Initial render of the speed menu
+          updateMenuHeight(); // Initial height calculation
+          window.addEventListener('resize', updateMenuHeight); // Listen for window resize
         },
         onStateChange: (e) => {
           // Re-render settings menu on state change to update active quality
