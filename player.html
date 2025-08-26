@@ -49,9 +49,9 @@
         display: none !important;
       }
       
-      /* Show playback speed on mobile */
+      /* HIDE PLAYBACK SPEED ON MOBILE BY DEFAULT */
       .speed {
-          display: inline-flex !important;
+          display: none !important;
       }
     }
     
@@ -588,6 +588,11 @@
               <option value="2">2×</option>
             </select>
 
+            <button class="icon" id="pipBtn" aria-label="Picture in Picture">
+              <i class='bx bx-window'></i>
+              <span>PiP</span>
+            </button>
+
             <button class="icon" id="lsBtn" aria-label="Landscape Fullscreen" style="display: none;">
               <i class='bx bx-expand-horizontal'></i>
               <span>Landscape</span>
@@ -767,6 +772,7 @@
     const tL = $('#timeLeft');
     const tR = $('#timeRight');
     const speed = $('#speed');
+    const pipBtn = $('#pipBtn');
     const lsBtn = $('#lsBtn');
     const fsBtn = $('#fsBtn');
     const muteBtn = $('#muteBtn');
@@ -781,7 +787,7 @@
     if (window.innerWidth <= 768) {
       fsBtn.style.display = 'inline-flex';
       lsBtn.style.display = 'none';
-      speed.style.display = 'inline-flex';
+      speed.style.display = 'none';
     } else {
       fsBtn.style.display = 'inline-flex';
       lsBtn.style.display = 'none';
@@ -890,6 +896,23 @@
       state.player.setPlaybackRate(rate);
     });
 
+    // Picture in Picture
+    pipBtn.addEventListener('click', async ()=>{
+      try {
+        if (document.pictureInPictureElement) {
+          await document.exitPictureInPicture();
+        } else if (document.pictureInPictureEnabled) {
+          // For YouTube iframe, we need to request PiP on the iframe
+          const iframe = $('#ytPlayer');
+          if (iframe && iframe.requestPictureInPicture) {
+            await iframe.requestPictureInPicture();
+          }
+        }
+      } catch (error) {
+        console.error('Picture-in-Picture failed:', error);
+      }
+    });
+
     // Fullscreen for all devices
     fsBtn.addEventListener('click', ()=>{
       const el = shell;
@@ -928,7 +951,7 @@
       if (!document.fullscreenElement) {
         fsBtn.innerHTML = '<i class="bx bx-fullscreen"></i><span>Full</span>';
         if (window.innerWidth <= 768) {
-            speed.style.display = 'inline-flex';
+            speed.style.display = 'none';
             // Unlock orientation on exit fullscreen
             if (screen.orientation) {
                 try {
