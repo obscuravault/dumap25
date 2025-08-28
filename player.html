@@ -147,6 +147,44 @@
       color: white;
       text-shadow: 0 0 10px rgba(0,0,0,0.5);
     }
+    
+    /* NEW: Mobile tap zones */
+    .tap-zone {
+        position: absolute;
+        top: 0;
+        height: 100%;
+        width: 33.333%; /* Divide screen into three equal zones */
+        z-index: 5;
+    }
+    .tap-zone.left {
+        left: 0;
+    }
+    .tap-zone.center {
+        left: 33.333%;
+    }
+    .tap-zone.right {
+        right: 0;
+    }
+    
+    /* NEW: Info message overlay */
+    .info-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 1rem;
+      font-size: 1.25rem;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .info-message.active {
+      opacity: 1;
+    }
 
     /* Controls bar */
     .controls {
@@ -663,6 +701,44 @@
       opacity: .9;
       color: #fff;
     }
+    
+    /* NEW: Mobile tap zones */
+    .tap-zone {
+        position: absolute;
+        top: 0;
+        height: 100%;
+        width: 33.333%; /* Divide screen into three equal zones */
+        z-index: 5;
+    }
+    .tap-zone.left {
+        left: 0;
+    }
+    .tap-zone.center {
+        left: 33.333%;
+    }
+    .tap-zone.right {
+        right: 0;
+    }
+    
+    /* NEW: Info message overlay */
+    .info-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 1rem;
+      font-size: 1.25rem;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .info-message.active {
+      opacity: 1;
+    }
   </style>
 </head>
 <body class="no-js">
@@ -729,14 +805,17 @@
       <div class="yt-host" id="ytHost">
         <div id="ytPlayer" class="yt-iframe" title="YouTube player"></div>
       </div>
-
+      
+      <!-- NEW: Tap Zones for Mobile Shortcuts -->
+      <div class="tap-zone left" id="rewindZone"></div>
+      <div class="tap-zone center" id="centerZone"></div>
+      <div class="tap-zone right" id="forwardZone"></div>
+      
       <!-- Transparent blocker over the iframe (prevents context menu & direct clicks) -->
       <div class="anti-iframe" id="antiIframe" oncontextmenu="return false;"></div>
-
-      <!-- Double-tap skip overlay with icons -->
-      <div id="skipOverlay" class="skip-overlay">
-        <i id="skipIcon" class='bx' style="font-size: 5rem; color: white;"></i>
-      </div>
+      
+      <!-- NEW: Info message overlay -->
+      <div id="infoMessage" class="info-message"></div>
 
       <!-- Watermark -->
       <div class="ov-watermark" aria-hidden="true"><span>Obscura Vault</span></div>
@@ -923,6 +1002,9 @@
 
   // ---- State ----
   const state = { items:[], current:null, group:null, subjects:[], colors:{}, player:null, apiReady:false, tick:null, seeking:false, isMobileFullscreen: false, lastTap: 0 };
+  const doubleTapDelay = 300; // ms for double tap
+  let infoMessageTimeout;
+  let controlsTimeout;
 
   // Basic route helpers
   function getRID(){ return new URLSearchParams(location.search).get('rid'); }
@@ -955,6 +1037,31 @@
     if (h>0) return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
     return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
   }
+  
+  // NEW: Function to show a temporary info message
+  function showInfoMessage(message, duration = 1000) {
+    const infoMessage = $('#infoMessage');
+    if (!infoMessage) return;
+    infoMessage.textContent = message;
+    infoMessage.classList.add('active');
+    clearTimeout(infoMessageTimeout);
+    infoMessageTimeout = setTimeout(() => {
+        infoMessage.classList.remove('active');
+    }, duration);
+  }
+  
+  // NEW: Function to show and hide controls
+  function showControls() {
+    const controls = $('#controls');
+    if (!controls) return;
+    controls.style.opacity = '1';
+    controls.style.pointerEvents = 'all';
+    clearTimeout(controlsTimeout);
+    controlsTimeout = setTimeout(() => {
+        controls.style.opacity = '0';
+        controls.style.pointerEvents = 'none';
+    }, 3000);
+  }
 
   // UI node refs
   const $ = sel => document.querySelector(sel);
@@ -982,17 +1089,27 @@
     const forwardBtn = $('#forwardBtn');
     const shell = $('#playerShell');
     const antiIframe = $('#antiIframe');
-    const videoElement = $('#ytPlayer');
-    const skipOverlay = $('#skipOverlay');
-    const skipIcon = $('#skipIcon');
     let lastVolume = state.player.getVolume();
-    let doubleTapTimer = null;
-
+    
+    // NEW: Tap zones for mobile
+    const rewindZone = $('#rewindZone');
+    const centerZone = $('#centerZone');
+    const forwardZone = $('#forwardZone');
+    
     // Show/hide settings button on mobile
     if (window.innerWidth <= 768) {
       settingsBtn.style.display = 'inline-flex';
     } else {
       settingsBtn.style.display = 'inline-flex';
+    }
+    
+    // Hide native controls on mobile
+    if (window.innerWidth <= 768) {
+        controls.style.opacity = 0;
+        controls.style.pointerEvents = 'none';
+    } else {
+        controls.style.opacity = 1;
+        controls.style.pointerEvents = 'all';
     }
 
     // Play/Pause
@@ -1011,14 +1128,11 @@
       if (!state.player) return;
       if (state.player.isMuted()) {
         state.player.unMute();
-        // Restore last volume
         state.player.setVolume(lastVolume);
         volumeSlider.value = lastVolume;
-        volumeIcon.className = 'bx bx-volume-full';
       } else {
         lastVolume = state.player.getVolume();
         state.player.mute();
-        volumeIcon.className = 'bx bx-volume-mute';
         volumeSlider.value = 0;
       }
     });
@@ -1049,6 +1163,7 @@
       if (state.player) {
         state.player.seekTo(0, true);
         state.player.playVideo();
+        showInfoMessage('Restart');
       }
     });
 
@@ -1057,69 +1172,51 @@
       if (!state.player) return;
       const curTime = state.player.getCurrentTime();
       state.player.seekTo(Math.max(0, curTime - 5), true);
+      showInfoMessage('-5s');
     });
 
     forwardBtn.addEventListener('click', () => {
       if (!state.player) return;
       const curTime = state.player.getCurrentTime();
       state.player.seekTo(curTime + 5, true);
+      showInfoMessage('+5s');
     });
 
-    // --- Mobile Double-Tap Skip ---
-    antiIframe.addEventListener('touchend', (e) => {
+    // --- NEW: Mobile Tap Gestures ---
+    rewindZone.addEventListener('touchend', (e) => {
       const now = new Date().getTime();
-      const timeSinceLastTap = now - state.lastTap;
-      const tapDuration = e.timeStamp - state.startTouchTime;
-      const isQuickTap = tapDuration < 300; // Define a quick tap duration
-
-      if (timeSinceLastTap < 300 && isQuickTap) {
-        const videoWidth = shell.offsetWidth;
-        const tapX = e.changedTouches[0].clientX;
-        
-        // Skip forward (right side) or backward (left side)
-        if (tapX > videoWidth / 2) {
-          state.player.seekTo(state.player.getCurrentTime() + 5, true);
-          skipIcon.className = 'bx bx-chevrons-right';
-        } else {
-          state.player.seekTo(Math.max(0, state.player.getCurrentTime() - 5), true);
-          skipIcon.className = 'bx bx-chevrons-left';
-        }
-        skipOverlay.classList.add('show');
-        clearTimeout(doubleTapTimer);
-        doubleTapTimer = setTimeout(() => {
-          skipOverlay.classList.remove('show');
-        }, 800);
-      } else {
-        // Single tap behavior (play/pause)
-        if (window.innerWidth <= 768) {
-          if (!state.player) return;
-          const st = state.player.getPlayerState();
-          if (st === YT.PlayerState.PLAYING) {
-            state.player.pauseVideo();
-          } else {
-            state.player.playVideo();
-          }
-          e.stopPropagation();
-        }
+      if (now - state.lastTap < doubleTapDelay) {
+          state.player.seekTo(state.player.getCurrentTime() - 10, true);
+          showInfoMessage('-10s');
+          e.preventDefault();
       }
       state.lastTap = now;
+      showControls();
     });
 
-    antiIframe.addEventListener('touchstart', (e) => {
-      state.startTouchTime = e.timeStamp;
-      // Show controls on mobile when tapping video
-      if (window.innerWidth <= 768) {
-        const controls = $('#controls');
-        controls.style.opacity = '1';
-        controls.style.pointerEvents = 'all';
-
-        // Hide controls after 3 seconds
-        clearTimeout(window.controlsTimeout);
-        window.controlsTimeout = setTimeout(() => {
-          controls.style.opacity = '0';
-          controls.style.pointerEvents = 'none';
-        }, 3000);
-      }
+    forwardZone.addEventListener('touchend', (e) => {
+        const now = new Date().getTime();
+        if (now - state.lastTap < doubleTapDelay) {
+            state.player.seekTo(state.player.getCurrentTime() + 10, true);
+            showInfoMessage('+10s');
+            e.preventDefault();
+        }
+        state.lastTap = now;
+        showControls();
+    });
+    
+    centerZone.addEventListener('touchend', (e) => {
+        const now = new Date().getTime();
+        if (now - state.lastTap >= doubleTapDelay) {
+            const st = state.player.getPlayerState();
+            if (st === YT.PlayerState.PLAYING) {
+                state.player.pauseVideo();
+            } else {
+                state.player.playVideo();
+            }
+        }
+        state.lastTap = now;
+        showControls();
     });
 
     // Seek
