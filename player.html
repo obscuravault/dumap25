@@ -9,6 +9,10 @@
 
   <!-- Minimal styles for custom controls & overlays -->
   <style>
+    /*
+     * Custom styles for the video player and its controls.
+     * All YouTube branding and native controls are hidden.
+     */
     .player-wrap {
       max-width: 1100px;
       margin: 0 auto;
@@ -714,6 +718,27 @@
       opacity: .9;
       color: #fff;
     }
+    
+    /* New buffering loader styles */
+    .loader {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      z-index: 10;
+      display: none; /* Initially hidden */
+    }
+
+    @keyframes spin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
   </style>
 </head>
 <body class="no-js">
@@ -797,6 +822,9 @@
           <span id="repeatStatus" class="repeat-status">REPEAT</span>
           <span id="liveStatus" class="live-status">LIVE</span>
       </div>
+      
+      <!-- NEW: Custom buffering loader -->
+      <div id="loader" class="loader"></div>
 
       <!-- Watermark -->
       <div class="ov-watermark" aria-hidden="true"><span>Obscura Vault</span></div>
@@ -1069,6 +1097,7 @@
     const forwardBtn = $('#forwardBtn');
     const shell = $('#playerShell');
     const antiIframe = $('#antiIframe');
+    const loader = $('#loader');
     let lastVolume = state.player.getVolume();
     
     // NEW: Tap zones for mobile
@@ -1388,6 +1417,13 @@
         playIcon.className = 'bx bx-play';
         playLabel.textContent = 'Play';
       }
+      
+      // Show/hide loader based on buffering state
+      if (st === YT.PlayerState.BUFFERING) {
+          loader.style.display = 'block';
+      } else {
+          loader.style.display = 'none';
+      }
     }, 200);
 
     // This function will toggle the UI based on whether the video is a live stream.
@@ -1404,7 +1440,7 @@
             const relatedCards = $('#relatedCards');
 
             if (state.isLive) {
-                // Show LIVE badge, hide progress bar, time row, and REP label
+                // Show LIVE badge, hide progress bar, time row, and REPEAT label
                 liveStatus.style.display = 'inline-block';
                 repeatStatus.style.display = 'none';
                 seekBarContainer.style.display = 'none';
@@ -1418,7 +1454,7 @@
                 if (relatedBar) relatedBar.style.display = 'none';
                 if (relatedCards) relatedCards.style.display = 'none';
             } else {
-                // Show progress bar, time row, and REP label, hide LIVE badge
+                // Show progress bar, time row, and REPEAT label, hide LIVE badge
                 liveStatus.style.display = 'none';
                 repeatStatus.style.display = 'inline-block';
                 seekBarContainer.style.display = 'flex';
@@ -1501,7 +1537,8 @@
         fs: 0,
         playsinline: 1,
         iv_load_policy: 3,
-        enablejsapi: 1
+        showinfo: 0, // This is key to hiding video title and channel info
+        rel: 0 // Prevents related videos from showing
       },
       events: {
         onReady: (e) => {
