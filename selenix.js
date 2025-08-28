@@ -5,7 +5,7 @@
   const GOOGLE_SHEETS_API_KEY = "AIzaSyDzdiDMtiY250DS-lDuZeIZOocw9oqMlhM";
   const SPREADSHEET_ID = "1VOdK-3yofh-wLkbXRh-T7FiXgDjVFrkd4uszkRre1V0";
   const TAB_NAME = "Lessons";
-  const LOGO_URL = ""; // optional: your logo URL
+  const LOGO_URL = "https://yt3.ggpht.com/dvET-k1ACs8PRAd9xldf31l6o93UOpyDH9IVa7DSSOWQxGMX-KaFD0ffB6SCr5Z8rmMrn3O2jA=s800-c-k-c0x00ffffff-no-rj"; // optional: your logo URL
   
   /* ---------- NAV / SEARCH OVERLAY / MOBILE ---------- */
   function initHeader(){
@@ -260,6 +260,7 @@
    
 
 })();
+
 
 
 
