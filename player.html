@@ -120,6 +120,33 @@
       z-index: 4;
       background: transparent;
     }
+    
+    /* Double tap skip overlay */
+    .skip-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: none;
+      z-index: 10;
+      pointer-events: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s ease-in-out;
+    }
+
+    .skip-overlay.show {
+      display: flex;
+      opacity: 1;
+    }
+
+    .skip-overlay .skip-icon {
+      font-size: 4rem;
+      color: white;
+      text-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
 
     /* Controls bar */
     .controls {
@@ -706,6 +733,11 @@
       <!-- Transparent blocker over the iframe (prevents context menu & direct clicks) -->
       <div class="anti-iframe" id="antiIframe" oncontextmenu="return false;"></div>
 
+      <!-- Double-tap skip overlay with icons -->
+      <div id="skipOverlay" class="skip-overlay">
+        <i id="skipIcon" class='bx' style="font-size: 5rem; color: white;"></i>
+      </div>
+
       <!-- Watermark -->
       <div class="ov-watermark" aria-hidden="true"><span>Obscura Vault</span></div>
       <div class="ov-watermark1">
@@ -740,6 +772,14 @@
             <span id="liveStatus" class="live-status">LIVE</span>
             <span id="repeatLabel" class="rep-status">REP</span>
             
+            <!-- Skip buttons -->
+            <button class="icon" id="rewindBtn" aria-label="Rewind 5 seconds">
+              <i class='bx bx-skip-previous'></i>
+            </button>
+            <button class="icon" id="forwardBtn" aria-label="Forward 5 seconds">
+              <i class='bx bx-skip-next'></i>
+            </button>
+
             <!-- Settings button and menu -->
             <button class="icon" id="settingsBtn" aria-label="Settings">
               <i class='bx bx-cog'></i>
@@ -882,7 +922,7 @@
   }, 1000);
 
   // ---- State ----
-  const state = { items:[], current:null, group:null, subjects:[], colors:{}, player:null, apiReady:false, tick:null, seeking:false, isMobileFullscreen: false };
+  const state = { items:[], current:null, group:null, subjects:[], colors:{}, player:null, apiReady:false, tick:null, seeking:false, isMobileFullscreen: false, lastTap: 0 };
 
   // Basic route helpers
   function getRID(){ return new URLSearchParams(location.search).get('rid'); }
@@ -938,10 +978,15 @@
     const muteBtn = $('#muteBtn');
     const volumeIcon = $('#volumeIcon');
     const volumeSlider = $('#volumeSlider');
+    const rewindBtn = $('#rewindBtn');
+    const forwardBtn = $('#forwardBtn');
     const shell = $('#playerShell');
     const antiIframe = $('#antiIframe');
     const videoElement = $('#ytPlayer');
+    const skipOverlay = $('#skipOverlay');
+    const skipIcon = $('#skipIcon');
     let lastVolume = state.player.getVolume();
+    let doubleTapTimer = null;
 
     // Show/hide settings button on mobile
     if (window.innerWidth <= 768) {
@@ -1007,22 +1052,62 @@
       }
     });
 
-    // Mobile tap to play/pause
-    antiIframe.addEventListener('click', (e) => {
-      if (window.innerWidth <= 768) {
-        if (!state.player) return;
-        const st = state.player.getPlayerState();
-        if (st === YT.PlayerState.PLAYING) {
-          state.player.pauseVideo();
-        } else {
-          state.player.playVideo();
-        }
-        e.stopPropagation();
-      }
+    // Add event listeners for skip buttons
+    rewindBtn.addEventListener('click', () => {
+      if (!state.player) return;
+      const curTime = state.player.getCurrentTime();
+      state.player.seekTo(Math.max(0, curTime - 5), true);
     });
 
-    // Show controls on mobile when tapping video
+    forwardBtn.addEventListener('click', () => {
+      if (!state.player) return;
+      const curTime = state.player.getCurrentTime();
+      state.player.seekTo(curTime + 5, true);
+    });
+
+    // --- Mobile Double-Tap Skip ---
+    antiIframe.addEventListener('touchend', (e) => {
+      const now = new Date().getTime();
+      const timeSinceLastTap = now - state.lastTap;
+      const tapDuration = e.timeStamp - state.startTouchTime;
+      const isQuickTap = tapDuration < 300; // Define a quick tap duration
+
+      if (timeSinceLastTap < 300 && isQuickTap) {
+        const videoWidth = shell.offsetWidth;
+        const tapX = e.changedTouches[0].clientX;
+        
+        // Skip forward (right side) or backward (left side)
+        if (tapX > videoWidth / 2) {
+          state.player.seekTo(state.player.getCurrentTime() + 5, true);
+          skipIcon.className = 'bx bx-chevrons-right';
+        } else {
+          state.player.seekTo(Math.max(0, state.player.getCurrentTime() - 5), true);
+          skipIcon.className = 'bx bx-chevrons-left';
+        }
+        skipOverlay.classList.add('show');
+        clearTimeout(doubleTapTimer);
+        doubleTapTimer = setTimeout(() => {
+          skipOverlay.classList.remove('show');
+        }, 800);
+      } else {
+        // Single tap behavior (play/pause)
+        if (window.innerWidth <= 768) {
+          if (!state.player) return;
+          const st = state.player.getPlayerState();
+          if (st === YT.PlayerState.PLAYING) {
+            state.player.pauseVideo();
+          } else {
+            state.player.playVideo();
+          }
+          e.stopPropagation();
+        }
+      }
+      state.lastTap = now;
+    });
+
     antiIframe.addEventListener('touchstart', (e) => {
+      state.startTouchTime = e.timeStamp;
+      // Show controls on mobile when tapping video
       if (window.innerWidth <= 768) {
         const controls = $('#controls');
         controls.style.opacity = '1';
@@ -1124,6 +1209,51 @@
         fsBtn.innerHTML = '<i class="bx bx-exit-fullscreen"></i><span>Exit</span>';
       }
     });
+    
+    // --- Keyboard Shortcuts ---
+    document.addEventListener('keydown', (e) => {
+      if (!state.player) return;
+
+      switch (e.key) {
+        case ' ':
+          e.preventDefault(); // Prevent spacebar from scrolling
+          const st = state.player.getPlayerState();
+          if (st === YT.PlayerState.PLAYING) {
+            state.player.pauseVideo();
+          } else {
+            state.player.playVideo();
+          }
+          break;
+        case 'ArrowLeft':
+          state.player.seekTo(state.player.getCurrentTime() - 5, true);
+          break;
+        case 'ArrowRight':
+          state.player.seekTo(state.player.getCurrentTime() + 5, true);
+          break;
+        case 'ArrowUp':
+          const currentVolUp = state.player.getVolume();
+          state.player.setVolume(Math.min(100, currentVolUp + 5));
+          break;
+        case 'ArrowDown':
+          const currentVolDown = state.player.getVolume();
+          state.player.setVolume(Math.max(0, currentVolDown - 5));
+          break;
+        case 'm':
+          if (state.player.isMuted()) {
+            state.player.unMute();
+          } else {
+            state.player.mute();
+          }
+          break;
+        case 'f':
+          if (!document.fullscreenElement) {
+            shell.requestFullscreen();
+          } else {
+            document.exitFullscreen();
+          }
+          break;
+      }
+    });
 
     // Tick updater
     if (state.tick) clearInterval(state.tick);
@@ -1181,12 +1311,16 @@
                 seekBarContainer.style.display = 'none';
                 timeDisplayEl.style.display = 'none';
                 repeatLabel.style.display = 'none';
+                rewindBtn.style.display = 'none';
+                forwardBtn.style.display = 'none';
             } else {
                 // Show progress bar, time row, and REP label, hide LIVE badge
                 liveStatus.style.display = 'none';
                 seekBarContainer.style.display = 'flex';
                 timeDisplayEl.style.display = 'inline-block';
                 repeatLabel.style.display = 'inline-block';
+                rewindBtn.style.display = 'inline-flex';
+                forwardBtn.style.display = 'inline-flex';
             }
         } catch (e) {
             console.error('Could not get video data. Retrying...');
