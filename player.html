@@ -231,8 +231,8 @@
       flex: 1 1 auto;
       display: flex;
       align-items: center;
-      gap: 10px;
       min-width: 120px;
+      gap: 10px;
     }
 
     .seek input[type="range"] {
@@ -624,7 +624,7 @@
         <button type="submit">Search</button>
       </form>
     </div>
-  </header>
+  </div>
 
   <!-- Search overlay -->
   <div class="search-overlay" id="searchOverlay">
@@ -1249,7 +1249,11 @@
     if (state.group){
       state.group.parts.forEach(p=>{
         const card = document.createElement('div'); card.className='card';
-        const img = document.createElement('img'); img.src = p.thumb || ''; img.alt = p.partTitle || 'thumbnail';
+        const img = document.createElement('img');
+        const videoId = extractYouTubeID(p.youtube);
+        // Use the YouTube thumbnail URL if p.thumb is blank or not provided
+        img.src = p.thumb ? p.thumb : (videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : '');
+        img.alt = p.partTitle || 'thumbnail';
         card.appendChild(img);
         const body = document.createElement('div'); body.className='card-body';
         const tag = document.createElement('div'); tag.className='tag-row';
@@ -1302,7 +1306,7 @@
             vid = '9i_UWs0tgJw'; // Replace with your default video ID
 
             // Show message to user
-            playerTitle.textContent = 'Original video is not uploaded yet. Please wait until the video uploading is Completed.';
+            playerTitle.textContent = 'Repeat වීඩියෝව තවමත් Upload කර නොමැත. කරුණාකර පසුව උත්සහ කරන්න';
             console.warn('No video found. Loading default video.');
           } else {
             // Show the actual video title if available
