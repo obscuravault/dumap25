@@ -128,7 +128,8 @@
       right: 0;
       bottom: 0;
       z-index: 5;
-      display: grid;
+      display: flex;
+      flex-direction: column;
       gap: 8px;
       padding: 10px 12px;
       background: linear-gradient(to top, rgba(0,0,0,.75), rgba(0,0,0,.0));
@@ -149,6 +150,16 @@
       /* Hide volume controls in normal mobile view */
       .volume-control {
         display: none;
+      }
+
+      /* Mobile layout for controls */
+      .controls {
+        flex-direction: column;
+        gap: 0;
+      }
+
+      .row {
+        flex-wrap: wrap;
       }
     }
 
@@ -223,8 +234,17 @@
 
     @media (max-width: 768px) {
         #timeRight {
-            display: none;
+            display: inline-block; /* Ensure it's displayed on mobile */
         }
+    }
+
+    .seek-time {
+      color: #fff;
+      font-variant-numeric: tabular-nums;
+      font-size: 13px;
+      opacity: .9;
+      text-align: center;
+      width: 100%;
     }
 
     .seek {
@@ -316,7 +336,8 @@
 
       .time {
         font-size: 11px;
-        min-width: 90px;
+        min-width: 40px;
+        text-align: center;
       }
 
       .seek input[type="range"] {
@@ -345,6 +366,21 @@
 
       .right {
         gap: 6px;
+      }
+
+      /* The seek bar container to be shown/hidden */
+      #seekBarContainer {
+          order: -1; /* This moves the progress bar to the top */
+          padding-bottom: 8px;
+          display: flex; /* Ensure it's a flex container for the range input */
+          align-items: center;
+          width: 100%;
+          min-width: 100%;
+      }
+
+      /* Hide time elements from the main seek bar on mobile */
+      #seekBarContainer .time {
+          display: none;
       }
     }
 
@@ -584,6 +620,22 @@
     .rep-status {
       background: green;
     }
+
+    /* Styles for the time row */
+    .time-row {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      margin-top: 4px; /* Space between progress bar and time */
+    }
+
+    /* Style for the seek time span */
+    .seek-time {
+      font-variant-numeric: tabular-nums;
+      font-size: 13px;
+      opacity: .9;
+      color: #fff;
+    }
   </style>
 </head>
 <body class="no-js">
@@ -662,6 +714,11 @@
 
       <!-- Custom Controls -->
       <div class="controls" id="controls">
+        <!-- The seek bar container -->
+        <div class="seek" id="seekBarContainer">
+          <input type="range" id="seekBar" min="0" max="1000" step="1" value="0" aria-label="Seek">
+        </div>
+
         <div class="row">
           <button class="icon" id="playPause" aria-label="Play/Pause">
             <i class='bx bx-play' id="playIcon"></i>
@@ -674,16 +731,12 @@
             </button>
             <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="100" aria-label="Volume">
           </div>
-
-          <!-- The seek bar container to be shown/hidden -->
-          <div class="seek" id="seekBarContainer">
-            <span class="time" id="timeLeft">00:00</span>
-            <input type="range" id="seekBar" min="0" max="1000" step="1" value="0" aria-label="Seek">
-            <span class="time" id="timeRight">00:00</span>
-          </div>
           
           <div class="right">
-            <!-- New Live Status / Repeat button container -->
+            <!-- Time display and Repeat button container -->
+            <span class="seek-time" id="timeDisplay">
+              <span id="currentTime">00:00</span> / <span id="totalTime">00:00</span>
+            </span>
             <span id="liveStatus" class="live-status">LIVE</span>
             <span id="repeatLabel" class="rep-status">REP</span>
             
@@ -711,8 +764,8 @@
     </div>
 
     <div class="player-cta" style="margin-top:10px">
-      <a class="btn1" id="telegramBtn" target="_blank">Terms and Conditions</a>
-      <a class="btn1 secondary" id="resourceBtn" target="_blank">Access PDF</a>
+      <a class="btn1" id="telegramBtn" target="_blank">Practical Videos</a>
+      <a class="btn1 secondary" id="resourceBtn" target="_blank">Download PDF</a>
     </div>
 
     <div class="bar" style="margin:20px 0 16px"></div>
@@ -872,8 +925,9 @@
     const playIcon = $('#playIcon');
     const playLabel = $('#playLabel');
     const seekBar = $('#seekBar');
-    const tL = $('#timeLeft');
-    const tR = $('#timeRight');
+    const timeDisplayEl = $('#timeDisplay');
+    const currentTimeEl = $('#currentTime');
+    const totalTimeEl = $('#totalTime');
     const seekBarContainer = $('#seekBarContainer');
     const liveStatus = $('#liveStatus');
     const repeatLabel = $('#repeatLabel');
@@ -988,9 +1042,11 @@
       state.seeking = true;
       const dur = state.player ? (state.player.getDuration()||0) : 0;
       const target = (seekBar.value / 1000) * dur;
-      tL.textContent = fmt(target);
+      currentTimeEl.textContent = fmt(target);
+      totalTimeEl.textContent = fmt(dur);
     });
     seekBar.addEventListener('change', ()=>{
+      const cur = state.player ? (state.player.getCurrentTime()||0) : 0;
       const dur = state.player ? (state.player.getDuration()||0) : 0;
       const target = (seekBar.value / 1000) * dur;
       if (state.player && Number.isFinite(target)) {
@@ -1083,8 +1139,8 @@
         // Only update seek bar for non-live videos
         if (seekBarContainer.style.display !== 'none' && Number.isFinite(cur) && Number.isFinite(dur) && dur > 0) {
             seekBar.value = Math.round((cur / dur) * 1000);
-            tL.textContent = fmt(cur);
-            tR.textContent = fmt(dur);
+            currentTimeEl.textContent = fmt(cur);
+            totalTimeEl.textContent = fmt(dur);
         }
       }
 
@@ -1120,14 +1176,16 @@
             const isLive = videoData.isLive === true;
 
             if (isLive) {
-                // Show LIVE badge, hide progress bar and REP label
+                // Show LIVE badge, hide progress bar, time row, and REP label
                 liveStatus.style.display = 'inline-block';
                 seekBarContainer.style.display = 'none';
+                timeDisplayEl.style.display = 'none';
                 repeatLabel.style.display = 'none';
             } else {
-                // Show progress bar and REP label, hide LIVE badge
+                // Show progress bar, time row, and REP label, hide LIVE badge
                 liveStatus.style.display = 'none';
                 seekBarContainer.style.display = 'flex';
+                timeDisplayEl.style.display = 'inline-block';
                 repeatLabel.style.display = 'inline-block';
             }
         } catch (e) {
@@ -1253,7 +1311,7 @@
         const videoId = extractYouTubeID(p.youtube);
         // Use the YouTube thumbnail URL if p.thumb is blank or not provided
         img.src = p.thumb ? p.thumb : (videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : '');
-        img.alt = p.partTitle || 'thumbnail';
+        img.alt = p.partTitle || '';
         card.appendChild(img);
         const body = document.createElement('div'); body.className='card-body';
         const tag = document.createElement('div'); tag.className='tag-row';
