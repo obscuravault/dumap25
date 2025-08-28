@@ -162,7 +162,8 @@
 
       const head = document.createElement('div');
       head.className = 'lesson-header';
-      head.appendChild(selenix.makeSubjectDot(state.colors[group.subject]));
+      // Removed the subject dot from the lesson header
+      // head.appendChild(selenix.makeSubjectDot(state.colors[group.subject]));
       const title = document.createElement('div');
       title.className = 'lesson-title';
       title.textContent = `${group.lesson}`;
@@ -178,6 +179,7 @@
       group.parts.forEach(p=>{
         const row = document.createElement('div');
         row.className = 'part-row';
+        // Re-added the part dot
         const dot = document.createElement('span');
         dot.className = 'dot';
         dot.style.setProperty('--subject-color', state.colors[group.subject]);
@@ -219,7 +221,7 @@
       if (q.subject){
         state.activeSubject = q.subject;
       } else {
-        state.activeSubject = state.subjects[0] || ''; 
+        state.activeSubject = state.subjects[0] || '';
       }
 
       const pick = document.getElementById('pickerChips');
