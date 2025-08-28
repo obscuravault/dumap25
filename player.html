@@ -49,6 +49,39 @@
         display: none !important;
       }
     }
+    
+    /* NEW: Status badge container at top-right */
+    .status-badge-container {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        gap: 8px;
+        z-index: 5;
+    }
+
+    /* NEW: Live and Repeat status badges */
+    .live-status, .repeat-status {
+      display: none; /* Initially hidden */
+      color: white;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      backdrop-filter: blur(6px);
+    }
+    
+    .live-status {
+        background: rgba(255, 0, 0, 0.7);
+    }
+
+    .repeat-status {
+        background: rgba(0, 128, 0, 0.7);
+        cursor: pointer;
+    }
+
 
     /*Watermark Image*/
     .ov-watermark1 {
@@ -665,26 +698,6 @@
     .no-js .cards {
       display: none;
     }
-    
-    /* New styles for Live and REP status */
-    .live-status, .rep-status {
-      display: none; /* Initially hidden */
-      color: white;
-      font-size: 11px;
-      font-weight: bold;
-      padding: 4px 8px;
-      border-radius: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .live-status {
-      background: red;
-    }
-
-    .rep-status {
-      background: green;
-    }
 
     /* Styles for the time row */
     .time-row {
@@ -700,44 +713,6 @@
       font-size: 13px;
       opacity: .9;
       color: #fff;
-    }
-    
-    /* NEW: Mobile tap zones */
-    .tap-zone {
-        position: absolute;
-        top: 0;
-        height: 100%;
-        width: 33.333%; /* Divide screen into three equal zones */
-        z-index: 5;
-    }
-    .tap-zone.left {
-        left: 0;
-    }
-    .tap-zone.center {
-        left: 33.333%;
-    }
-    .tap-zone.right {
-        right: 0;
-    }
-    
-    /* NEW: Info message overlay */
-    .info-message {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: rgba(0, 0, 0, 0.7);
-      color: white;
-      padding: 1rem 2rem;
-      border-radius: 1rem;
-      font-size: 1.25rem;
-      opacity: 0;
-      transition: opacity 0.3s ease-in-out;
-      pointer-events: none;
-      z-index: 10;
-    }
-    .info-message.active {
-      opacity: 1;
     }
   </style>
 </head>
@@ -816,6 +791,12 @@
       
       <!-- NEW: Info message overlay -->
       <div id="infoMessage" class="info-message"></div>
+      
+      <!-- NEW: Status badges container -->
+      <div class="status-badge-container">
+          <span id="repeatStatus" class="repeat-status">REPEAT</span>
+          <span id="liveStatus" class="live-status">LIVE</span>
+      </div>
 
       <!-- Watermark -->
       <div class="ov-watermark" aria-hidden="true"><span>Obscura Vault</span></div>
@@ -844,12 +825,10 @@
           </div>
           
           <div class="right">
-            <!-- Time display and Repeat button container -->
+            <!-- Time display -->
             <span class="seek-time" id="timeDisplay">
               <span id="currentTime">00:00</span> / <span id="totalTime">00:00</span>
             </span>
-            <span id="liveStatus" class="live-status">LIVE</span>
-            <span id="repeatLabel" class="rep-status">REP</span>
             
             <!-- Skip buttons -->
             <button class="icon" id="rewindBtn" aria-label="Rewind 5 seconds">
@@ -887,8 +866,8 @@
       <a class="btn1 secondary" id="resourceBtn" target="_blank">Download PDF</a>
     </div>
 
-    <div class="bar" style="margin:20px 0 16px"></div>
-    <h3>Other parts in this lesson</h3>
+    <div class="bar" id="relatedBar" style="margin:20px 0 16px"></div>
+    <h3 id="relatedTitle">Other parts in this lesson</h3>
     <div class="cards" id="relatedCards"></div>
   </div>
 
@@ -1001,8 +980,9 @@
   }, 1000);
 
   // ---- State ----
-  const state = { items:[], current:null, group:null, subjects:[], colors:{}, player:null, apiReady:false, tick:null, seeking:false, isMobileFullscreen: false, lastTap: 0 };
+  const state = { items:[], current:null, group:null, subjects:[], colors:{}, player:null, apiReady:false, tick:null, seeking:false, isLive: false, lastTap: 0 };
   const doubleTapDelay = 300; // ms for double tap
+  const doubleTapSkip = 5; // seconds to skip
   let infoMessageTimeout;
   let controlsTimeout;
 
@@ -1077,7 +1057,7 @@
     const totalTimeEl = $('#totalTime');
     const seekBarContainer = $('#seekBarContainer');
     const liveStatus = $('#liveStatus');
-    const repeatLabel = $('#repeatLabel');
+    const repeatStatus = $('#repeatStatus');
     const settingsBtn = $('#settingsBtn');
     const settingsMenu = $('#settingsMenu');
     const lsBtn = $('#lsBtn');
@@ -1159,7 +1139,7 @@
     });
     
     // Add event listener for the new repeat label
-    repeatLabel.addEventListener('click', () => {
+    repeatStatus.addEventListener('click', () => {
       if (state.player) {
         state.player.seekTo(0, true);
         state.player.playVideo();
@@ -1184,10 +1164,11 @@
 
     // --- NEW: Mobile Tap Gestures ---
     rewindZone.addEventListener('touchend', (e) => {
+      if (state.isLive) return; // Ignore for live streams
       const now = new Date().getTime();
       if (now - state.lastTap < doubleTapDelay) {
-          state.player.seekTo(state.player.getCurrentTime() - 10, true);
-          showInfoMessage('-10s');
+          state.player.seekTo(state.player.getCurrentTime() - doubleTapSkip, true);
+          showInfoMessage(`-${doubleTapSkip}s`);
           e.preventDefault();
       }
       state.lastTap = now;
@@ -1195,10 +1176,11 @@
     });
 
     forwardZone.addEventListener('touchend', (e) => {
+        if (state.isLive) return; // Ignore for live streams
         const now = new Date().getTime();
         if (now - state.lastTap < doubleTapDelay) {
-            state.player.seekTo(state.player.getCurrentTime() + 10, true);
-            showInfoMessage('+10s');
+            state.player.seekTo(state.player.getCurrentTime() + doubleTapSkip, true);
+            showInfoMessage(`+${doubleTapSkip}s`);
             e.preventDefault();
         }
         state.lastTap = now;
@@ -1206,8 +1188,9 @@
     });
     
     centerZone.addEventListener('touchend', (e) => {
+        // Only toggle play/pause on a single tap, not a double tap
         const now = new Date().getTime();
-        if (now - state.lastTap >= doubleTapDelay) {
+        if (now - state.lastTap >= doubleTapDelay || now - state.lastTap === 0) {
             const st = state.player.getPlayerState();
             if (st === YT.PlayerState.PLAYING) {
                 state.player.pauseVideo();
@@ -1221,6 +1204,7 @@
 
     // Seek
     seekBar.addEventListener('input', ()=>{
+      if (state.isLive) return;
       state.seeking = true;
       const dur = state.player ? (state.player.getDuration()||0) : 0;
       const target = (seekBar.value / 1000) * dur;
@@ -1228,6 +1212,7 @@
       totalTimeEl.textContent = fmt(dur);
     });
     seekBar.addEventListener('change', ()=>{
+      if (state.isLive) return;
       const cur = state.player ? (state.player.getCurrentTime()||0) : 0;
       const dur = state.player ? (state.player.getDuration()||0) : 0;
       const target = (seekBar.value / 1000) * dur;
@@ -1311,6 +1296,14 @@
     document.addEventListener('keydown', (e) => {
       if (!state.player) return;
 
+      // Disable specific keyboard shortcuts for live streams
+      if (state.isLive) {
+          if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+              e.preventDefault();
+              return;
+          }
+      }
+
       switch (e.key) {
         case ' ':
           e.preventDefault(); // Prevent spacebar from scrolling
@@ -1322,10 +1315,14 @@
           }
           break;
         case 'ArrowLeft':
-          state.player.seekTo(state.player.getCurrentTime() - 5, true);
+          if (!state.isLive) {
+            state.player.seekTo(state.player.getCurrentTime() - 5, true);
+          }
           break;
         case 'ArrowRight':
-          state.player.seekTo(state.player.getCurrentTime() + 5, true);
+          if (!state.isLive) {
+            state.player.seekTo(state.player.getCurrentTime() + 5, true);
+          }
           break;
         case 'ArrowUp':
           const currentVolUp = state.player.getVolume();
@@ -1400,24 +1397,40 @@
         // Using a try/catch block to handle potential errors if the API is not ready
         try {
             const videoData = state.player.getVideoData();
-            const isLive = videoData.isLive === true;
+            state.isLive = videoData.isLive === true;
 
-            if (isLive) {
+            const relatedTitle = $('#relatedTitle');
+            const relatedBar = $('#relatedBar');
+            const relatedCards = $('#relatedCards');
+
+            if (state.isLive) {
                 // Show LIVE badge, hide progress bar, time row, and REP label
                 liveStatus.style.display = 'inline-block';
+                repeatStatus.style.display = 'none';
                 seekBarContainer.style.display = 'none';
                 timeDisplayEl.style.display = 'none';
-                repeatLabel.style.display = 'none';
                 rewindBtn.style.display = 'none';
                 forwardBtn.style.display = 'none';
+                settingsBtn.style.display = 'none'; // Hide settings button for live streams
+                
+                // Hide related parts
+                if (relatedTitle) relatedTitle.style.display = 'none';
+                if (relatedBar) relatedBar.style.display = 'none';
+                if (relatedCards) relatedCards.style.display = 'none';
             } else {
                 // Show progress bar, time row, and REP label, hide LIVE badge
                 liveStatus.style.display = 'none';
+                repeatStatus.style.display = 'inline-block';
                 seekBarContainer.style.display = 'flex';
                 timeDisplayEl.style.display = 'inline-block';
-                repeatLabel.style.display = 'inline-block';
                 rewindBtn.style.display = 'inline-flex';
                 forwardBtn.style.display = 'inline-flex';
+                settingsBtn.style.display = 'inline-flex'; // Show settings button for normal videos
+
+                // Show related parts
+                if (relatedTitle) relatedTitle.style.display = 'block';
+                if (relatedBar) relatedBar.style.display = 'block';
+                if (relatedCards) relatedCards.style.display = 'grid'; // Re-show as grid
             }
         } catch (e) {
             console.error('Could not get video data. Retrying...');
