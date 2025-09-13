@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Materials Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FFFFFF;
+            color: #121212;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        .card {
+            background-color: #F5F5F5;
+            border: 1px solid #CFCFCF;
+            transition: transform 0.2s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .filter-dropdown {
+            background-color: #F5F5F5;
+            color: #121212;
+            border: 1px solid #CFCFCF;
+        }
+        .download-button {
+            background-color: #D4D4D4;
+            color: #121212;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .download-button:hover {
+            background-color: #BDBDBD;
+        }
+        .loading {
+            border: 4px solid rgba(0, 0, 0, 0.3);
+            border-top-color: #121212;
+            border-radius: 50%;
+            width: 3rem;
+            height: 3rem;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        /* Custom class for 16:9 aspect ratio */
+        .aspect-16-9 {
+            position: relative;
+            padding-top: 56.25%; /* 9 / 16 * 100 */
+        }
+        .aspect-16-9 img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body class="bg-white text-stone-950 min-h-screen flex flex-col items-center p-4 md:p-8">
+
+    <!-- Header -->
+    <header class="w-full text-center py-8">
+        <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-2 text-stone-800">Materials Download</h1>
+        <p class="text-lg md:text-xl text-stone-600">Find the resources you need.</p>
+    </header>
+
+    <!-- Main Content Container with Fluid Width -->
+    <main class="w-full container mx-auto px-4 md:px-8">
+        
+        <!-- Filter Section - Now with three dropdowns -->
+        <div id="filterContainer" class="flex flex-col md:flex-row items-center justify-center gap-4 mb-8">
+            <div class="w-full md:w-1/3">
+                <label for="mainFilter" class="block text-sm font-medium text-stone-600 mb-1">Select Category</label>
+                <select id="mainFilter" class="w-full p-3 rounded-lg filter-dropdown focus:outline-none focus:ring-2 focus:ring-black">
+                    <option value="all">All Materials</option>
+                </select>
+            </div>
+            <div class="w-full md:w-1/3">
+                <label for="subFilter" class="block text-sm font-medium text-stone-600 mb-1">Filter by Type</label>
+                <select id="subFilter" class="w-full p-3 rounded-lg filter-dropdown focus:outline-none focus:ring-2 focus:ring-black" disabled>
+                    <option value="all">All</option>
+                </select>
+            </div>
+            <div class="w-full md:w-1/3">
+                <label for="nameFilter" class="block text-sm font-medium text-stone-600 mb-1">Filter by Name</label>
+                <select id="nameFilter" class="w-full p-3 rounded-lg filter-dropdown focus:outline-none focus:ring-2 focus:ring-black">
+                    <option value="all">All Names</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Materials View - The container now has no fixed height, allowing content to flow naturally below the filters. -->
+        <div id="materialsContainer" class="mt-8">
+            <!-- Content will be dynamically inserted here (loading or cards) -->
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full text-center py-4 mt-8">
+        <p class="text-xs text-stone-500">
+            &copy; 2024 Obscura Vault
+        </p>
+    </footer>
+
+     <script src="resource.js"></script>
+</body>
+</html>
