@@ -1,3 +1,4 @@
+
         let materialsData = [];
         const API_KEY = 'AIzaSyDzdiDMtiY250DS-lDuZeIZOocw9oqMlhM'; // Replace with your API key
         const SHEET_ID = '1VOdK-3yofh-wLkbXRh-T7FiXgDjVFrkd4uszkRre1V0'; // Replace with your Google Sheet ID
@@ -46,7 +47,7 @@
                 const data = await response.json();
                 
                 if (!data.values || data.values.length === 0) {
-                    materialsContainer.innerHTML = '<p class="text-center text-stone-600">No data found in the spreadsheet.</p>';
+                    materialsContainer.innerHTML = '<p class="text-center text-gray-600">No data found in the spreadsheet.</p>';
                     return;
                 }
 
@@ -139,24 +140,24 @@
             materialsContainer.innerHTML = ''; // Clear previous content
             
             if (data.length === 0) {
-                materialsContainer.innerHTML = '<p class="text-center text-stone-600">No materials found.</p>';
+                materialsContainer.innerHTML = '<p class="text-center text-gray-600">No materials found.</p>';
                 return;
             }
 
             const cardView = document.createElement('div');
             cardView.id = 'cardView';
             // Grid layout for responsiveness
-            cardView.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full';
+            cardView.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full';
 
             data.forEach(material => {
                 const card = `
-                    <div class="card p-6 rounded-lg shadow-lg flex flex-col justify-between">
+                    <div class="card p-4 rounded-lg shadow-md flex flex-col justify-between">
                         <div>
-                            <div class="aspect-16-9 rounded-lg mb-4">
+                            <div class="aspect-16-9 rounded-lg mb-4 overflow-hidden">
                                 <img src="${material.thumbnailUrl}" alt="${material.name}" class="w-full h-full object-cover rounded-lg">
                             </div>
-                            <h3 class="text-lg font-semibold text-stone-800 mb-1">${material.name} | ${material.subtype}</h3>
-                            <p class="text-stone-600 text-sm">Category: ${material.type}</p>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-1">${material.name} | ${material.subtype}</h3>
+                            <p class="text-gray-600 text-sm">Category: ${material.type}</p>
                         </div>
                         <a href="${material.downloadLink}" target="_blank" rel="noopener noreferrer" class="mt-4 w-full text-center py-2 px-4 rounded-lg text-sm font-medium download-button">Download</a>
                     </div>
@@ -215,6 +216,6 @@
         });
         
         nameFilter.addEventListener('change', updateDisplay);
-
+        
         // Fetch materials on page load
         document.addEventListener('DOMContentLoaded', fetchMaterialsFromSheet);
