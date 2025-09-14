@@ -1,4 +1,4 @@
-let materialsData = [];
+        let materialsData = [];
         const API_KEY = 'AIzaSyDzdiDMtiY250DS-lDuZeIZOocw9oqMlhM'; // Replace with your API key
         const SHEET_ID = '1VOdK-3yofh-wLkbXRh-T7FiXgDjVFrkd4uszkRre1V0'; // Replace with your Google Sheet ID
         const RANGE = 'Sheet1!A:E'; // Updated to fetch 5 columns
@@ -81,8 +81,26 @@ let materialsData = [];
                 option.textContent = type;
                 mainFilter.appendChild(option);
             });
-
-            const names = [...new Set(materialsData.map(item => item.name))].sort();
+            
+            subFilter.disabled = true;
+            nameFilter.disabled = true;
+            subFilter.value = 'all';
+            nameFilter.value = 'all';
+        }
+        
+        function populateSubFilter(filteredData) {
+            const subtypes = [...new Set(filteredData.map(item => item.subtype))].sort();
+            subFilter.innerHTML = '<option value="all">All</option>';
+            subtypes.forEach(subtype => {
+                const option = document.createElement('option');
+                option.value = subtype;
+                option.textContent = subtype;
+                subFilter.appendChild(option);
+            });
+        }
+        
+        function populateNameFilter(filteredData) {
+            const names = [...new Set(filteredData.map(item => item.name))].sort();
             nameFilter.innerHTML = '<option value="all">All Names</option>';
             names.forEach(name => {
                 const option = document.createElement('option');
@@ -90,11 +108,8 @@ let materialsData = [];
                 option.textContent = name;
                 nameFilter.appendChild(option);
             });
-
-            subFilter.disabled = true;
-            subFilter.value = 'all';
         }
-
+        
         function updateDisplay() {
             const selectedType = mainFilter.value;
             const selectedSubtype = subFilter.value;
@@ -155,33 +170,50 @@ let materialsData = [];
         mainFilter.addEventListener('change', (e) => {
             const selectedType = e.target.value;
             const filteredByMain = selectedType === 'all' ? materialsData : materialsData.filter(item => item.type === selectedType);
-
-            // Populate sub-filter
-            const subtypes = [...new Set(filteredByMain.map(item => item.subtype))];
-            subFilter.innerHTML = '<option value="all">All</option>';
-            subtypes.forEach(subtype => {
-                const option = document.createElement('option');
-                option.value = subtype;
-                option.textContent = subtype;
-                subFilter.appendChild(option);
-            });
-            subFilter.disabled = selectedType === 'all';
-            subFilter.value = 'all';
-
-            // Populate name filter based on new main filter selection
-            const names = [...new Set(filteredByMain.map(item => item.name))].sort();
-            nameFilter.innerHTML = '<option value="all">All Names</option>';
-            names.forEach(name => {
-                const option = document.createElement('option');
-                option.value = name;
-                option.textContent = name;
-                nameFilter.appendChild(option);
-            });
-
+            
+            populateSubFilter(filteredByMain);
+            
+            // Disable name filter and enable sub filter if a category is selected
+            if (selectedType !== 'all') {
+                subFilter.disabled = false;
+                nameFilter.disabled = true;
+                nameFilter.value = 'all';
+            } else {
+                subFilter.disabled = true;
+                nameFilter.disabled = true;
+                subFilter.value = 'all';
+                nameFilter.value = 'all';
+            }
+            
             updateDisplay();
         });
 
-        subFilter.addEventListener('change', updateDisplay);
+        subFilter.addEventListener('change', (e) => {
+            const selectedType = mainFilter.value;
+            const selectedSubtype = e.target.value;
+            
+            // Filter materials based on both main and sub-filter
+            let filteredBySubtype = materialsData;
+            if (selectedType !== 'all') {
+                filteredBySubtype = filteredBySubtype.filter(item => item.type === selectedType);
+            }
+            if (selectedSubtype !== 'all') {
+                filteredBySubtype = filteredBySubtype.filter(item => item.subtype === selectedSubtype);
+            }
+
+            populateNameFilter(filteredBySubtype);
+            
+            // Enable name filter if a subtype is selected
+            if (selectedSubtype !== 'all') {
+                nameFilter.disabled = false;
+            } else {
+                nameFilter.disabled = true;
+                nameFilter.value = 'all';
+            }
+
+            updateDisplay();
+        });
+        
         nameFilter.addEventListener('change', updateDisplay);
 
         // Fetch materials on page load
