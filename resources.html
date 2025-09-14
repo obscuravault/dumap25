@@ -9,36 +9,39 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #FFFFFF;
-            color: #121212;
+            transition: background-color 0.3s, color 0.3s;
         }
         .container {
             max-width: 1200px;
         }
         .card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
             background-color: #F5F5F5;
-            border: 1px solid #CFCFCF;
-            transition: transform 0.2s ease-in-out;
+            border: 1px solid #E0E0E0;
         }
         .card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
         .filter-dropdown {
-            background-color: #F5F5F5;
-            color: #121212;
-            border: 1px solid #CFCFCF;
+            background-color: #E0E0E0;
+            color: #222222;
+            border: 1px solid #BDBDBD;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
         .download-button {
-            background-color: #D4D4D4;
-            color: #121212;
-            transition: background-color 0.2s ease-in-out;
+            background-color: #555555;
+            color: white;
+            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .download-button:hover {
-            background-color: #BDBDBD;
+            background-color: #333333;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
         .loading {
             border: 4px solid rgba(0, 0, 0, 0.3);
-            border-top-color: #121212;
+            border-top-color: #333333;
             border-radius: 50%;
             width: 3rem;
             height: 3rem;
@@ -65,31 +68,37 @@
 <body class="bg-white text-stone-950 min-h-screen flex flex-col items-center p-4 md:p-8">
 
     <!-- Header -->
-    <header class="w-full text-center py-8">
-        <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-2 text-stone-800">Mission A+ Resources</h1>
-        <p class="text-lg md:text-xl text-stone-600">Find the resources you need.</p>
+    <header class="w-full text-center py-8 relative">
+        <button onclick="window.history.back()" class="absolute top-4 left-4 md:top-8 md:left-8 flex items-center p-2 rounded-lg text-sm font-medium download-button focus:outline-none focus:ring-2 focus:ring-black">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 mr-1">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+            Back
+        </button>
+        <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-2 text-black">Mission A+ Resources</h1>
+        <p class="text-lg md:text-xl text-gray-700">Find the resources you need.</p>
     </header>
 
     <!-- Main Content Container with Fluid Width -->
     <main class="w-full container mx-auto px-4 md:px-8">
         
-        <!-- Filter Section - Now with three dropdowns -->
-        <div id="filterContainer" class="flex flex-col md:flex-row items-center justify-center gap-4 mb-8">
+        <!-- Filter Section - Refined for better UX -->
+        <div id="filterContainer" class="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 p-4 bg-gray-100 rounded-lg shadow-inner">
             <div class="w-full md:w-1/3">
-                <label for="mainFilter" class="block text-sm font-medium text-stone-600 mb-1">Select Category</label>
-                <select id="mainFilter" class="w-full p-3 rounded-lg filter-dropdown focus:outline-none focus:ring-2 focus:ring-black">
+                <label for="mainFilter" class="block text-sm font-medium text-gray-700 mb-1">Select Category</label>
+                <select id="mainFilter" class="w-full p-3 rounded-lg filter-dropdown focus:outline-none focus:ring-2 focus:ring-gray-700">
                     <option value="all">All Materials</option>
                 </select>
             </div>
             <div class="w-full md:w-1/3">
-                <label for="subFilter" class="block text-sm font-medium text-stone-600 mb-1">Filter by Type</label>
-                <select id="subFilter" class="w-full p-3 rounded-lg filter-dropdown focus:outline-none focus:ring-2 focus:ring-black" disabled>
+                <label for="subFilter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Type</label>
+                <select id="subFilter" class="w-full p-3 rounded-lg filter-dropdown focus:outline-none focus:ring-2 focus:ring-gray-700" disabled>
                     <option value="all">All</option>
                 </select>
             </div>
             <div class="w-full md:w-1/3">
-                <label for="nameFilter" class="block text-sm font-medium text-stone-600 mb-1">Filter by Name</label>
-                <select id="nameFilter" class="w-full p-3 rounded-lg filter-dropdown focus:outline-none focus:ring-2 focus:ring-black" disabled>
+                <label for="nameFilter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Name</label>
+                <select id="nameFilter" class="w-full p-3 rounded-lg filter-dropdown focus:outline-none focus:ring-2 focus:ring-gray-700" disabled>
                     <option value="all">All Names</option>
                 </select>
             </div>
@@ -104,11 +113,232 @@
 
     <!-- Footer -->
     <footer class="w-full text-center py-4 mt-8">
-        <p class="text-xs text-stone-500">
+        <p class="text-xs text-gray-500">
             &copy; 2024 Obscura Vault
         </p>
     </footer>
 
-     <script src="resource.js"></script>
+     <script>
+        let materialsData = [];
+        const API_KEY = 'AIzaSyDzdiDMtiY250DS-lDuZeIZOocw9oqMlhM'; // Replace with your API key
+        const SHEET_ID = '1VOdK-3yofh-wLkbXRh-T7FiXgDjVFrkd4uszkRre1V0'; // Replace with your Google Sheet ID
+        const RANGE = 'Sheet1!A:E'; // Updated to fetch 5 columns
+
+        const mainFilter = document.getElementById('mainFilter');
+        const subFilter = document.getElementById('subFilter');
+        const nameFilter = document.getElementById('nameFilter');
+        const materialsContainer = document.getElementById('materialsContainer');
+
+        // Helper function to get YouTube thumbnail from URL
+        function getYouTubeThumbnail(url) {
+            let videoId = null;
+            const defaultVideoId = 'oozJFcPwSl8'; // Default YouTube video ID
+
+            try {
+                const urlString = url ? url.trim() : '';
+                const urlObj = new URL(urlString);
+
+                if (urlObj.hostname.includes('youtube.com')) {
+                    if (urlObj.pathname === '/watch') {
+                        videoId = urlObj.searchParams.get('v');
+                    } else if (urlObj.pathname.startsWith('/embed/') || urlObj.pathname.startsWith('/live/') || urlObj.pathname.startsWith('/shorts/')) {
+                        videoId = urlObj.pathname.split('/').pop();
+                    }
+                } else if (urlObj.hostname === 'youtu.be') {
+                    videoId = urlObj.pathname.substring(1);
+                }
+            } catch (error) {
+                console.warn(`Could not parse YouTube URL: ${url}`);
+            }
+            
+            // If no video ID was found, use the default one.
+            if (!videoId) {
+                videoId = defaultVideoId;
+            }
+
+            return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+        }
+
+        async function fetchMaterialsFromSheet() {
+            materialsContainer.innerHTML = '<div class="flex justify-center items-center h-48"><div class="loading"></div></div>';
+            try {
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (!data.values || data.values.length === 0) {
+                    materialsContainer.innerHTML = '<p class="text-center text-gray-600">No data found in the spreadsheet.</p>';
+                    return;
+                }
+
+                // Assuming the first row is the header
+                const [header, ...rows] = data.values;
+                materialsData = rows.map(row => {
+                    const youtubeLink = row[4];
+                    return {
+                        type: row[0],
+                        subtype: row[1],
+                        name: row[2],
+                        downloadLink: row[3],
+                        thumbnailUrl: getYouTubeThumbnail(youtubeLink)
+                    };
+                });
+
+                initializeFilters();
+                updateDisplay();
+
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                materialsContainer.innerHTML = '<p class="text-center text-red-600">Failed to load data. Please check your API key and Sheet ID.</p>';
+            }
+        }
+
+        function initializeFilters() {
+            const types = [...new Set(materialsData.map(item => item.type))];
+            mainFilter.innerHTML = '<option value="all">All Materials</option>';
+            types.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                mainFilter.appendChild(option);
+            });
+            
+            subFilter.disabled = true;
+            nameFilter.disabled = true;
+            subFilter.value = 'all';
+            nameFilter.value = 'all';
+        }
+        
+        function populateSubFilter(filteredData) {
+            const subtypes = [...new Set(filteredData.map(item => item.subtype))].sort();
+            subFilter.innerHTML = '<option value="all">All</option>';
+            subtypes.forEach(subtype => {
+                const option = document.createElement('option');
+                option.value = subtype;
+                option.textContent = subtype;
+                subFilter.appendChild(option);
+            });
+        }
+        
+        function populateNameFilter(filteredData) {
+            const names = [...new Set(filteredData.map(item => item.name))].sort();
+            nameFilter.innerHTML = '<option value="all">All Names</option>';
+            names.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                nameFilter.appendChild(option);
+            });
+        }
+        
+        function updateDisplay() {
+            const selectedType = mainFilter.value;
+            const selectedSubtype = subFilter.value;
+            const selectedName = nameFilter.value;
+
+            let filteredData = materialsData;
+            
+            // Apply main category filter
+            if (selectedType !== 'all') {
+                filteredData = filteredData.filter(item => item.type === selectedType);
+            }
+
+            // Apply subtype filter
+            if (selectedSubtype !== 'all') {
+                filteredData = filteredData.filter(item => item.subtype === selectedSubtype);
+            }
+
+            // Apply name filter
+            if (selectedName !== 'all') {
+                filteredData = filteredData.filter(item => item.name === selectedName);
+            }
+
+            displayMaterials(filteredData);
+        }
+
+        function displayMaterials(data) {
+            materialsContainer.innerHTML = ''; // Clear previous content
+            
+            if (data.length === 0) {
+                materialsContainer.innerHTML = '<p class="text-center text-gray-600">No materials found.</p>';
+                return;
+            }
+
+            const cardView = document.createElement('div');
+            cardView.id = 'cardView';
+            // Grid layout for responsiveness
+            cardView.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full';
+
+            data.forEach(material => {
+                const card = `
+                    <div class="card p-4 rounded-lg shadow-md flex flex-col justify-between">
+                        <div>
+                            <div class="aspect-16-9 rounded-lg mb-4 overflow-hidden">
+                                <img src="${material.thumbnailUrl}" alt="${material.name}" class="w-full h-full object-cover rounded-lg">
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-1">${material.name} | ${material.subtype}</h3>
+                            <p class="text-gray-600 text-sm">Category: ${material.type}</p>
+                        </div>
+                        <a href="${material.downloadLink}" target="_blank" rel="noopener noreferrer" class="mt-4 w-full text-center py-2 px-4 rounded-lg text-sm font-medium download-button">Download</a>
+                    </div>
+                `;
+                cardView.innerHTML += card;
+            });
+
+            materialsContainer.appendChild(cardView);
+        }
+
+        mainFilter.addEventListener('change', (e) => {
+            const selectedType = e.target.value;
+            const filteredByMain = selectedType === 'all' ? materialsData : materialsData.filter(item => item.type === selectedType);
+            
+            populateSubFilter(filteredByMain);
+            
+            // Disable name filter and enable sub filter if a category is selected
+            if (selectedType !== 'all') {
+                subFilter.disabled = false;
+                nameFilter.disabled = true;
+                nameFilter.value = 'all';
+            } else {
+                subFilter.disabled = true;
+                nameFilter.disabled = true;
+                subFilter.value = 'all';
+                nameFilter.value = 'all';
+            }
+            
+            updateDisplay();
+        });
+
+        subFilter.addEventListener('change', (e) => {
+            const selectedType = mainFilter.value;
+            const selectedSubtype = e.target.value;
+            
+            // Filter materials based on both main and sub-filter
+            let filteredBySubtype = materialsData;
+            if (selectedType !== 'all') {
+                filteredBySubtype = filteredBySubtype.filter(item => item.type === selectedType);
+            }
+            if (selectedSubtype !== 'all') {
+                filteredBySubtype = filteredBySubtype.filter(item => item.subtype === selectedSubtype);
+            }
+
+            populateNameFilter(filteredBySubtype);
+            
+            // Enable name filter if a subtype is selected
+            if (selectedSubtype !== 'all') {
+                nameFilter.disabled = false;
+            } else {
+                nameFilter.disabled = true;
+                nameFilter.value = 'all';
+            }
+
+            updateDisplay();
+        });
+        
+        nameFilter.addEventListener('change', updateDisplay);
+        
+        // Fetch materials on page load
+        document.addEventListener('DOMContentLoaded', fetchMaterialsFromSheet);
+     </script>
 </body>
 </html>
