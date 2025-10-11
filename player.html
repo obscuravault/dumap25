@@ -54,7 +54,7 @@
         display: none !important;
       }
     }
-    
+
     /* NEW: Status badge container at top-right */
     .status-badge-container {
         position: absolute;
@@ -77,7 +77,7 @@
       letter-spacing: 0.5px;
       backdrop-filter: blur(6px);
     }
-    
+
     .live-status {
         background: rgba(255, 0, 0, 0.7);
     }
@@ -86,7 +86,6 @@
         background: rgba(0, 128, 0, 0.7);
         cursor: pointer;
     }
-
 
     /*Watermark Image*/
     .ov-watermark1 {
@@ -137,16 +136,71 @@
       text-shadow: 0 1px 0 rgba(0,0,0,.8);
     }
 
-    /* The actual YouTube host container */
-    .yt-host, .yt-iframe {
+    /* Video cropping and aspect ratio adjustments */
+    .youtube-video-host-container {
       position: absolute;
-      inset: 0;
       width: 100%;
       height: 100%;
+      top: 0;
+      left: 0;
+      overflow: hidden;
+    }
+
+    .yt-host {
+      position: absolute;
+      width: 100%;
+      height: 125%; /* Scale for 1080p to 720p crop */
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
     }
 
     .yt-iframe {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      /* Crop 90px from top and bottom (8.33% of 1080px) */
+      clip-path: inset(8.33% 0 8.33% 0);
+      -webkit-clip-path: inset(8.33% 0 8.33% 0);
       border: 0;
+    }
+
+    /* Black overlay bars for cropped areas */
+    .crop-overlay {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 8.33%;
+      background: #000;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .crop-overlay.top {
+      top: 0;
+    }
+
+    .crop-overlay.bottom {
+      bottom: 0;
+    }
+
+    /* Fullscreen support */
+    .player-shell:fullscreen .yt-host,
+    .player-shell:-webkit-full-screen .yt-host,
+    .player-shell:-moz-full-screen .yt-host,
+    .player-shell:-ms-fullscreen .yt-host {
+      height: 125%;
+    }
+
+    .player-shell:fullscreen .yt-iframe,
+    .player-shell:-webkit-full-screen .yt-iframe,
+    .player-shell:-moz-full-screen .yt-iframe,
+    .player-shell:-ms-fullscreen .yt-iframe {
+      clip-path: inset(8.33% 0 8.33% 0);
+      -webkit-clip-path: inset(8.33% 0 8.33% 0);
     }
 
     /* Transparent layer that blocks direct interaction with iframe */
@@ -158,7 +212,28 @@
       z-index: 4;
       background: transparent;
     }
-    
+
+    /* NEW: Overlay for paused state to hide YouTube branding */
+    .paused-overlay {
+      position: absolute;
+      inset: 0;
+      background-color: #000;
+      z-index: 5;
+      display: none; /* Initially hidden */
+      /* NEW: Flexbox to center the message */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* NEW: Message style within the overlay */
+    .paused-overlay > span {
+      color: white;
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+    }
+
     /* Double tap skip overlay */
     .skip-overlay {
       position: absolute;
@@ -185,7 +260,7 @@
       color: white;
       text-shadow: 0 0 10px rgba(0,0,0,0.5);
     }
-    
+
     /* NEW: Mobile tap zones */
     .tap-zone {
         position: absolute;
@@ -203,7 +278,7 @@
     .tap-zone.right {
         right: 0;
     }
-    
+
     /* NEW: Info message overlay */
     .info-message {
       position: absolute;
@@ -719,26 +794,27 @@
       opacity: .9;
       color: #fff;
     }
-    
-    /* New buffering loader styles */
-    .loader {
+
+    /* NEW: Loading text styles */
+    .loading-text {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 50px;
-      height: 50px;
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
+      color: #fff;
+      font-size: 1.25rem;
+      font-weight: bold;
       z-index: 10;
       display: none; /* Initially hidden */
     }
 
-    @keyframes spin {
-      0% { transform: translate(-50%, -50%) rotate(0deg); }
-      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    /* NEW: Loading overlay styles */
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.8);
+      z-index: 6; /* Above video, below loading text */
+      display: none; /* Initially hidden */
     }
   </style>
 </head>
@@ -802,30 +878,44 @@
 
     <!-- Custom Player -->
     <div class="player-shell" id="playerShell" aria-label="video player">
+      <!-- NEW: Loading overlay to hide video content -->
+      <div id="loadingOverlay" class="loading-overlay"></div>
+
+      <!-- Crop overlay bars -->
+      <div class="crop-overlay top"></div>
+      <div class="crop-overlay bottom"></div>
+
       <!-- Host for YouTube iframe -->
-      <div class="yt-host" id="ytHost">
-        <div id="ytPlayer" class="yt-iframe" title="YouTube player"></div>
+      <div class="youtube-video-host-container" id="obscuraVideoHost">
+        <div class="yt-host">
+          <div id="ytPlayer" class="yt-iframe" title="YouTube player"></div>
+        </div>
       </div>
-      
+
+      <!-- NEW: Overlay for paused state -->
+      <div id="pausedOverlay" class="paused-overlay">
+        <span>Video is Paused</span>
+      </div>
+
       <!-- NEW: Tap Zones for Mobile Shortcuts -->
       <div class="tap-zone left" id="rewindZone"></div>
       <div class="tap-zone center" id="centerZone"></div>
       <div class="tap-zone right" id="forwardZone"></div>
-      
+
       <!-- Transparent blocker over the iframe (prevents context menu & direct clicks) -->
       <div class="anti-iframe" id="antiIframe" oncontextmenu="return false;"></div>
-      
+
       <!-- NEW: Info message overlay -->
       <div id="infoMessage" class="info-message"></div>
-      
+
       <!-- NEW: Status badges container -->
       <div class="status-badge-container">
           <span id="repeatStatus" class="repeat-status">REPEAT</span>
           <span id="liveStatus" class="live-status">LIVE</span>
       </div>
-      
-      <!-- NEW: Custom buffering loader -->
-      <div id="loader" class="loader"></div>
+
+      <!-- NEW: Custom loading text -->
+      <div id="loadingText" class="loading-text">Loading...</div>
 
       <!-- Watermark -->
       <div class="ov-watermark" aria-hidden="true"><span>Obscura Vault</span></div>
@@ -852,13 +942,13 @@
             </button>
             <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="100" aria-label="Volume">
           </div>
-          
+
           <div class="right">
             <!-- Time display -->
             <span class="seek-time" id="timeDisplay">
               <span id="currentTime">00:00</span> / <span id="totalTime">00:00</span>
             </span>
-            
+
             <!-- Skip buttons -->
             <button class="icon" id="rewindBtn" aria-label="Rewind 5 seconds">
               <i class='bx bx-skip-previous'></i>
@@ -1046,7 +1136,7 @@
     if (h>0) return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
     return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
   }
-  
+
   // NEW: Function to show a temporary info message
   function showInfoMessage(message, duration = 1000) {
     const infoMessage = $('#infoMessage');
@@ -1058,7 +1148,7 @@
         infoMessage.classList.remove('active');
     }, duration);
   }
-  
+
   // NEW: Function to show and hide controls
   function showControls() {
     const controls = $('#controls');
@@ -1070,6 +1160,19 @@
         controls.style.opacity = '0';
         controls.style.pointerEvents = 'none';
     }, 3000);
+  }
+
+  // Function to adjust video crop dynamically
+  function adjustVideoCrop() {
+    const ytIframe = $('.yt-iframe');
+    const ytHost = $('.yt-host');
+    
+    if (ytIframe && ytHost) {
+      // Maintain the cropping for 1280x1080 to 1280x720
+      ytHost.style.height = '125%'; // 1080/864 = 1.25 (for 90px crop from both sides)
+      ytIframe.style.clipPath = 'inset(8.33% 0 8.33% 0)';
+      ytIframe.style.webkitClipPath = 'inset(8.33% 0 8.33% 0)';
+    }
   }
 
   // UI node refs
@@ -1098,21 +1201,24 @@
     const forwardBtn = $('#forwardBtn');
     const shell = $('#playerShell');
     const antiIframe = $('#antiIframe');
-    const loader = $('#loader');
+    const loadingText = $('#loadingText');
+    const loadingOverlay = $('#loadingOverlay');
+    const pausedOverlay = $('#pausedOverlay');
+    const obscuraVideoHost = $('#obscuraVideoHost'); // Reference to the video host
     let lastVolume = state.player.getVolume();
-    
+
     // NEW: Tap zones for mobile
     const rewindZone = $('#rewindZone');
     const centerZone = $('#centerZone');
     const forwardZone = $('#forwardZone');
-    
+
     // Show/hide settings button on mobile
     if (window.innerWidth <= 768) {
       settingsBtn.style.display = 'inline-flex';
     } else {
       settingsBtn.style.display = 'inline-flex';
     }
-    
+
     // Hide native controls on mobile
     if (window.innerWidth <= 768) {
         controls.style.opacity = 0;
@@ -1167,7 +1273,7 @@
             volumeSlider.value = isMuted ? 0 : vol;
         }
     });
-    
+
     // Add event listener for the new repeat label
     repeatStatus.addEventListener('click', () => {
       if (state.player) {
@@ -1216,7 +1322,7 @@
         state.lastTap = now;
         showControls();
     });
-    
+
     centerZone.addEventListener('touchend', (e) => {
         // Only toggle play/pause on a single tap, not a double tap
         const now = new Date().getTime();
@@ -1321,7 +1427,7 @@
         fsBtn.innerHTML = '<i class="bx bx-exit-fullscreen"></i><span>Exit</span>';
       }
     });
-    
+
     // --- Keyboard Shortcuts ---
     document.addEventListener('keydown', (e) => {
       if (!state.player) return;
@@ -1418,13 +1524,7 @@
         playIcon.className = 'bx bx-play';
         playLabel.textContent = 'Play';
       }
-      
-      // Show/hide loader based on buffering state
-      if (st === YT.PlayerState.BUFFERING) {
-          loader.style.display = 'block';
-      } else {
-          loader.style.display = 'none';
-      }
+
     }, 200);
 
     // This function will toggle the UI based on whether the video is a live stream.
@@ -1449,7 +1549,7 @@
                 rewindBtn.style.display = 'none';
                 forwardBtn.style.display = 'none';
                 settingsBtn.style.display = 'none'; // Hide settings button for live streams
-                
+
                 // Hide related parts
                 if (relatedTitle) relatedTitle.style.display = 'none';
                 if (relatedBar) relatedBar.style.display = 'none';
@@ -1477,8 +1577,41 @@
 
     // Call the function on relevant player events
     state.player.addEventListener('onStateChange', (event) => {
+        const st = event.data;
+        const isDesktop = window.innerWidth > 768;
+
+        // Manage loading message and overlay visibility, only on desktop
+        if (isDesktop) {
+            if (st === YT.PlayerState.BUFFERING || st === YT.PlayerState.UNSTARTED) {
+                loadingText.style.display = 'block';
+                loadingOverlay.style.display = 'block';
+                pausedOverlay.style.display = 'none';
+                obscuraVideoHost.style.display = 'none';
+            } else if (st === YT.PlayerState.PAUSED) {
+                loadingText.style.display = 'none';
+                loadingOverlay.style.display = 'none';
+                pausedOverlay.style.display = 'flex';
+                obscuraVideoHost.style.display = 'none'; // Hide video on pause
+            } else {
+                loadingText.style.display = 'none';
+                loadingOverlay.style.display = 'none';
+                pausedOverlay.style.display = 'none';
+                obscuraVideoHost.style.display = 'block'; // Show video on play/buffering
+            }
+        } else {
+            // On mobile, only manage the paused overlay
+            if (st === YT.PlayerState.PAUSED) {
+                pausedOverlay.style.display = 'flex';
+                obscuraVideoHost.style.display = 'none'; // Hide video on mobile pause
+            } else {
+                pausedOverlay.style.display = 'none';
+                obscuraVideoHost.style.display = 'block'; // Show video on mobile play/buffering
+            }
+        }
+
+
         // We check for PLAYING or BUFFERING state to ensure video data is available
-        if (event.data === YT.PlayerState.PLAYING || event.data === YT.PlayerState.BUFFERING) {
+        if (st === YT.PlayerState.PLAYING || st === YT.PlayerState.BUFFERING) {
             updateLiveStatusUI();
         }
     });
@@ -1543,10 +1676,21 @@
       },
       events: {
         onReady: (e) => {
+          // Force the video to play at 1280x1080 if available
+          try {
+            // Set quality to highest available (might include 1080p)
+            state.player.setPlaybackQuality('hd1080');
+          } catch (e) {
+            console.log('Could not set playback quality');
+          }
+          
           wireControls();
-          renderSettingsMenu(); // Initial render of the speed menu
-          updateMenuHeight(); // Initial height calculation
-          window.addEventListener('resize', updateMenuHeight); // Listen for window resize
+          renderSettingsMenu();
+          updateMenuHeight();
+          window.addEventListener('resize', updateMenuHeight);
+          
+          // Apply cropping initially
+          adjustVideoCrop();
         },
         onStateChange: (e) => {
           // Re-render settings menu on state change to update active quality
@@ -1556,6 +1700,9 @@
             if (settingsMenu.classList.contains('active')) {
                  renderSettingsMenu();
             }
+            
+            // Ensure cropping is maintained
+            adjustVideoCrop();
           }
         },
         onPlaybackQualityChange: (e) => {
@@ -1596,7 +1743,7 @@
         img.alt = p.partTitle || '';
         card.appendChild(img);
         const body = document.createElement('div'); body.className='card-body';
-        const tag = document.createElement('div'); tag.className='tag-row';
+        const tag = document.createElement('span'); tag.className='tag-row';
         const dot = document.createElement('span'); dot.className='dot'; dot.style.setProperty('--subject-color', state.colors[state.group.subject]||'#000');
         tag.appendChild(dot);
         tag.appendChild(document.createTextNode(`${state.group.subject}`));
@@ -1672,12 +1819,17 @@
     // If boot already ran, we'll init from there; otherwise boot will call later.
   }
 
+  // Update on resize
+  window.addEventListener('resize', adjustVideoCrop);
+
+  // Update on fullscreen change
+  document.addEventListener('fullscreenchange', adjustVideoCrop);
+  document.addEventListener('webkitfullscreenchange', adjustVideoCrop);
+  document.addEventListener('mozfullscreenchange', adjustVideoCrop);
+  document.addEventListener('MSFullscreenChange', adjustVideoCrop);
+
   boot();
   </script>
 </body>
 </html>
-
-
-
-
 
