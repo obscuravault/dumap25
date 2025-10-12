@@ -137,7 +137,7 @@
       text-shadow: 0 1px 0 rgba(0,0,0,.8);
     }
 
-    /* Video cropping and aspect ratio adjustments - UPDATED */
+    /* Video cropping and aspect ratio adjustments - UPDATED FOR ALL DEVICES */
     .youtube-video-host-container {
       position: absolute;
       width: 100%;
@@ -147,7 +147,7 @@
       overflow: hidden;
     }
 
-    /* Desktop: Reduced crop from 90px to 50px (4.63% instead of 8.33%) */
+    /* Apply 50px crop to ALL devices */
     .yt-host {
       position: absolute;
       width: 100%;
@@ -164,18 +164,18 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      /* Crop 50px from top and bottom (4.63% of 1080px) */
+      /* Crop 50px from top and bottom (4.63% of 1080px) for ALL devices */
       clip-path: inset(4.63% 0 4.63% 0);
       -webkit-clip-path: inset(4.63% 0 4.63% 0);
       border: 0;
     }
 
-    /* Black overlay bars for cropped areas - UPDATED */
+    /* Black overlay bars for cropped areas - UPDATED FOR ALL DEVICES */
     .crop-overlay {
       position: absolute;
       left: 0;
       right: 0;
-      height: 4.63%; /* Reduced from 8.33% to 4.63% */
+      height: 4.63%; /* Reduced from 8.33% to 4.63% for ALL devices */
       background: #000;
       z-index: 2;
       pointer-events: none;
@@ -189,7 +189,7 @@
       bottom: 0;
     }
 
-    /* Fullscreen support - UPDATED */
+    /* Fullscreen support - UPDATED FOR ALL DEVICES */
     .player-shell:fullscreen .yt-host,
     .player-shell:-webkit-full-screen .yt-host,
     .player-shell:-moz-full-screen .yt-host,
@@ -205,36 +205,7 @@
       -webkit-clip-path: inset(4.63% 0 4.63% 0);
     }
 
-    /* Mobile: No cropping - UPDATED */
-    @media (max-width: 768px) {
-      .yt-host {
-        height: 100% !important; /* No scaling on mobile */
-      }
-
-      .yt-iframe {
-        clip-path: none !important; /* No cropping on mobile */
-        -webkit-clip-path: none !important;
-      }
-
-      .crop-overlay {
-        display: none !important; /* Hide crop bars on mobile */
-      }
-
-      .player-shell:fullscreen .yt-host,
-      .player-shell:-webkit-full-screen .yt-host,
-      .player-shell:-moz-full-screen .yt-host,
-      .player-shell:-ms-fullscreen .yt-host {
-        height: 100% !important; /* No scaling in fullscreen on mobile */
-      }
-
-      .player-shell:fullscreen .yt-iframe,
-      .player-shell:-webkit-full-screen .yt-iframe,
-      .player-shell:-moz-full-screen .yt-iframe,
-      .player-shell:-ms-fullscreen .yt-iframe {
-        clip-path: none !important;
-        -webkit-clip-path: none !important;
-      }
-    }
+    /* REMOVED: Mobile no-crop overrides - now all devices use the same crop */
 
     /* Transparent layer that blocks direct interaction with iframe */
     .anti-iframe {
@@ -445,14 +416,27 @@
       gap: 10px;
     }
 
+    /* UPDATED: Progress Bar Styles with gradient colors */
     .seek input[type="range"] {
       -webkit-appearance: none;
       appearance: none;
       width: 100%;
       height: 6px;
       border-radius: 999px;
-      background: rgba(255,255,255,.3);
+      background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
+      background-size: 0% 100%;
+      background-repeat: no-repeat;
       outline: none;
+      cursor: pointer;
+      transition: background 0.1s ease;
+    }
+
+    /* Webkit (Chrome, Safari) */
+    .seek input[type="range"]::-webkit-slider-runnable-track {
+      -webkit-appearance: none;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.3);
     }
 
     .seek input[type="range"]::-webkit-slider-thumb {
@@ -463,7 +447,30 @@
       border-radius: 50%;
       background: #fff;
       cursor: pointer;
-      box-shadow: 0 0 0 3px rgba(0,0,0,.2);
+      box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.5);
+      border: 2px solid #fff;
+      transition: all 0.2s ease;
+      margin-top: -4px;
+    }
+
+    .seek input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+      box-shadow: 0 0 0 4px rgba(106, 17, 203, 0.7);
+    }
+
+    /* Firefox */
+    .seek input[type="range"]::-moz-range-track {
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.3);
+      border: none;
+    }
+
+    .seek input[type="range"]::-moz-range-progress {
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      height: 6px;
+      border-radius: 999px;
     }
 
     .seek input[type="range"]::-moz-range-thumb {
@@ -472,7 +479,14 @@
       border-radius: 50%;
       background: #fff;
       cursor: pointer;
-      box-shadow: 0 0 0 3px rgba(0,0,0,.2);
+      box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.5);
+      border: 2px solid #fff;
+      transition: all 0.2s ease;
+    }
+
+    .seek input[type="range"]::-moz-range-thumb:hover {
+      transform: scale(1.2);
+      box-shadow: 0 0 0 4px rgba(106, 17, 203, 0.7);
     }
 
     /* Volume control */
@@ -482,14 +496,18 @@
       gap: 8px;
     }
 
+    /* UPDATED: Volume slider with matching gradient */
     .volume-slider {
       -webkit-appearance: none;
       appearance: none;
       width: 80px;
       height: 6px;
       border-radius: 999px;
-      background: rgba(255,255,255,.3);
+      background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
       outline: none;
+      cursor: pointer;
     }
 
     .volume-slider::-webkit-slider-thumb {
@@ -500,7 +518,14 @@
       border-radius: 50%;
       background: #fff;
       cursor: pointer;
-      box-shadow: 0 0 0 3px rgba(0,0,0,.2);
+      box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.5);
+      border: 2px solid #fff;
+      transition: all 0.2s ease;
+    }
+
+    .volume-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+      box-shadow: 0 0 0 4px rgba(106, 17, 203, 0.7);
     }
 
     .volume-slider::-moz-range-thumb {
@@ -509,7 +534,20 @@
       border-radius: 50%;
       background: #fff;
       cursor: pointer;
-      box-shadow: 0 0 0 3px rgba(0,0,0,.2);
+      box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.5);
+      border: 2px solid #fff;
+      transition: all 0.2s ease;
+    }
+
+    .volume-slider::-moz-range-thumb:hover {
+      transform: scale(1.2);
+      box-shadow: 0 0 0 4px rgba(106, 17, 203, 0.7);
+    }
+
+    .volume-slider::-moz-range-progress {
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      height: 6px;
+      border-radius: 999px;
     }
 
     /* Mobile adjustments for controls */
@@ -539,12 +577,22 @@
         height: 12px;
       }
 
+      .seek input[type="range"]::-moz-range-thumb {
+        width: 12px;
+        height: 12px;
+      }
+
       .volume-slider {
         width: 60px;
         height: 5px;
       }
 
       .volume-slider::-webkit-slider-thumb {
+        width: 12px;
+        height: 12px;
+      }
+
+      .volume-slider::-moz-range-thumb {
         width: 12px;
         height: 12px;
       }
@@ -1096,7 +1144,7 @@
       <!-- NEW: Loading overlay to hide video content -->
       <div id="loadingOverlay" class="loading-overlay"></div>
 
-      <!-- Crop overlay bars - UPDATED: Reduced height -->
+      <!-- Crop overlay bars - UPDATED: Reduced height for ALL devices -->
       <div class="crop-overlay top"></div>
       <div class="crop-overlay bottom"></div>
 
@@ -1427,24 +1475,22 @@
     }, 3000);
   }
 
-  // Function to adjust video crop dynamically - UPDATED
+  // NEW: Function to update progress bar background
+  function updateProgressBar(seekBar, value, max) {
+    const percentage = (value / max) * 100;
+    seekBar.style.backgroundSize = `${percentage}% 100%`;
+  }
+
+  // Function to adjust video crop dynamically - UPDATED FOR ALL DEVICES
   function adjustVideoCrop() {
     const ytIframe = $('.yt-iframe');
     const ytHost = $('.yt-host');
     
     if (ytIframe && ytHost) {
-      // Check if mobile
-      if (window.innerWidth <= 768) {
-        // Mobile: No cropping
-        ytHost.style.height = '100%';
-        ytIframe.style.clipPath = 'none';
-        ytIframe.style.webkitClipPath = 'none';
-      } else {
-        // Desktop: Reduced crop from 90px to 50px (4.63% instead of 8.33%)
-        ytHost.style.height = '110.2%'; // 1080/980 = 1.102 (for 50px crop from both sides)
-        ytIframe.style.clipPath = 'inset(4.63% 0 4.63% 0)';
-        ytIframe.style.webkitClipPath = 'inset(4.63% 0 4.63% 0)';
-      }
+      // Apply 50px crop to ALL devices
+      ytHost.style.height = '110.2%'; // 1080/980 = 1.102 (for 50px crop from both sides)
+      ytIframe.style.clipPath = 'inset(4.63% 0 4.63% 0)';
+      ytIframe.style.webkitClipPath = 'inset(4.63% 0 4.63% 0)';
     }
   }
 
@@ -1495,6 +1541,10 @@
     const centerZone = $('#centerZone');
     const forwardZone = $('#forwardZone');
 
+    // Initialize progress bars
+    updateProgressBar(seekBar, 0, 1000);
+    updateProgressBar(volumeSlider, 100, 100);
+
     // Show/hide settings button on mobile
     if (window.innerWidth <= 768) {
       settingsBtn.style.display = 'inline-flex';
@@ -1529,10 +1579,12 @@
         state.player.unMute();
         state.player.setVolume(lastVolume);
         volumeSlider.value = lastVolume;
+        updateProgressBar(volumeSlider, lastVolume, 100);
       } else {
         lastVolume = state.player.getVolume();
         state.player.mute();
         volumeSlider.value = 0;
+        updateProgressBar(volumeSlider, 0, 100);
       }
     });
 
@@ -1540,6 +1592,7 @@
         if (!state.player) return;
         const vol = parseInt(volumeSlider.value, 10);
         state.player.setVolume(vol);
+        updateProgressBar(volumeSlider, vol, 100);
         if (vol === 0) {
             state.player.mute();
         } else {
@@ -1554,6 +1607,7 @@
             const vol = state.player.getVolume();
             const isMuted = state.player.isMuted();
             volumeSlider.value = isMuted ? 0 : vol;
+            updateProgressBar(volumeSlider, isMuted ? 0 : vol, 100);
         }
     });
 
@@ -1629,6 +1683,7 @@
       const target = (seekBar.value / 1000) * dur;
       currentTimeEl.textContent = fmt(target);
       totalTimeEl.textContent = fmt(dur);
+      updateProgressBar(seekBar, seekBar.value, 1000);
     });
     seekBar.addEventListener('change', ()=>{
       if (state.isLive) return;
@@ -1659,12 +1714,12 @@
       }
     });
 
-    // Fullscreen for all devices
+    // Fullscreen for all devices - UPDATED: Always force landscape on mobile
     fsBtn.addEventListener('click', ()=>{
       const el = shell;
       if (!document.fullscreenElement) {
         if (el.requestFullscreen) {
-            // Force landscape on mobile fullscreen
+            // Force landscape on ALL mobile devices in fullscreen
             if (window.innerWidth <= 768 && screen.orientation) {
                 try {
                     screen.orientation.lock('landscape').then(() => {
@@ -1788,7 +1843,9 @@
       if (!state.seeking){
         // Only update seek bar for non-live videos
         if (seekBarContainer.style.display !== 'none' && Number.isFinite(cur) && Number.isFinite(dur) && dur > 0) {
-            seekBar.value = Math.round((cur / dur) * 1000);
+            const progressValue = Math.round((cur / dur) * 1000);
+            seekBar.value = progressValue;
+            updateProgressBar(seekBar, progressValue, 1000);
             currentTimeEl.textContent = fmt(cur);
             totalTimeEl.textContent = fmt(dur);
         }
@@ -1798,12 +1855,15 @@
       if (isMuted || vol === 0) {
         volumeIcon.className = 'bx bx-volume-mute';
         volumeSlider.value = 0;
+        updateProgressBar(volumeSlider, 0, 100);
       } else if (vol < 50) {
         volumeIcon.className = 'bx bx-volume-low';
         volumeSlider.value = vol;
+        updateProgressBar(volumeSlider, vol, 100);
       } else {
         volumeIcon.className = 'bx bx-volume-full';
         volumeSlider.value = vol;
+        updateProgressBar(volumeSlider, vol, 100);
       }
 
       // icon/label
