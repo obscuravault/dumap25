@@ -4,31 +4,319 @@
   <meta charset="utf-8">
   <title>Obscura Vault - Lessons</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="selenix.css">
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-  <link rel="icon" href="https://yt3.ggpht.com/dvET-k1ACs8PRAd9xldf31l6o93UOpyDH9IVa7DSSOWQxGMX-KaFD0ffB6SCr5Z8rmMrn3O2jA=s800-c-k-c0x00ffffff-no-rj" type="image/svg+xml">
+  <!-- Fonts: 'Outfit' to match index.html -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  
+  <style>
+    /* --- THEME VARIABLES (Matched to Index.html) --- */
+    :root {
+      --bg-dark: #020617;   /* Slate-950 */
+      --bg-card: rgba(15, 23, 42, 0.6); /* Glass panel */
+      --bg-hover: rgba(30, 41, 59, 0.8);
+      
+      --text-main: #f8fafc; /* Slate-50 */
+      --text-muted: #94a3b8; /* Slate-400 */
+      
+      --accent-blue: #3b82f6;
+      --accent-violet: #8b5cf6;
+      --border-color: rgba(255, 255, 255, 0.1);
+      
+      --font-main: 'Outfit', sans-serif;
+    }
+
+    /* --- GLOBAL RESET & BASE --- */
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: 100%; }
+    
+    body {
+      font-family: var(--font-main);
+      color: var(--text-main);
+      background-color: var(--bg-dark);
+      /* Subtle background gradient to match home */
+      background-image: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 50%);
+      background-attachment: fixed;
+    }
+
+    button { cursor: pointer; font-family: inherit; }
+    a { text-decoration: none; color: inherit; transition: color 0.2s; }
+
+    /* --- UTILITIES --- */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+    .hidden { display: none !important; }
+
+    /* --- HEADER (Dark Glass) --- */
+    .header {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(2, 6, 23, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      height: 70px;
+      display: flex; align-items: center;
+    }
+    .nav { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+    
+    .brand {
+      display: flex; align-items: center; gap: 12px;
+      font-weight: 800; letter-spacing: 0.5px;
+      font-size: 1.25rem;
+    }
+    .brand .highlight { color: var(--accent-blue); }
+    .brand img { width: 32px; height: 32px; border-radius: 50%; display: none; }
+
+    .nav-links { display: flex; gap: 30px; align-items: center; font-weight: 500; font-size: 0.95rem; }
+    .nav-links a { color: var(--text-muted); }
+    .nav-links a:hover, .nav-links a.active { color: #fff; }
+
+    .icon-btn {
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border-color);
+      color: #fff; padding: 8px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .icon-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); }
+    .search-icon { width: 20px; filter: invert(1); } /* White icon */
+
+    .hamburger { display: none; background: none; border: none; flex-direction: column; gap: 5px; }
+    .hamburger span { width: 24px; height: 2px; background: #fff; }
+
+    /* Mobile Drawer */
+    .mobile-drawer {
+      position: fixed; top: 70px; left: 0; width: 100%;
+      background: var(--bg-dark); border-bottom: 1px solid var(--border-color);
+      display: none; flex-direction: column; padding: 20px; gap: 15px; z-index: 49;
+    }
+    .mobile-drawer.open { display: flex; }
+    .mobile-searchbar { display: none; padding: 15px 20px; background: #0f172a; border-bottom: 1px solid var(--border-color); }
+    .mobile-searchbar input { 
+      width: 100%; padding: 10px; background: #1e293b; border: 1px solid var(--border-color); 
+      color: #fff; border-radius: 6px; outline: none;
+    }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .mobile-searchbar { display: block; }
+    }
+
+    /* --- PAGE CONTENT --- */
+    .page-title {
+      font-size: 2.5rem; font-weight: 800; margin-bottom: 30px; color: #fff;
+      background: linear-gradient(to right, #fff, #94a3b8);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .back-row { margin: 20px 0; }
+    [data-back] {
+      background: transparent; border: 1px solid var(--border-color); color: var(--text-muted);
+      padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; transition: 0.2s;
+    }
+    [data-back]:hover { border-color: var(--accent-blue); color: #fff; }
+    
+    /* --- SUBJECT CARDS GRID (New Layout) --- */
+    .subject-card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-top: 20px;
+    }
+    
+    .subject-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 30px;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .subject-card:hover {
+      border-color: var(--subject-color, var(--accent-blue));
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 10px 20px var(--subject-color-shadow, rgba(59, 130, 246, 0.4));
+    }
+    
+    .subject-card-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    .subject-card-header h3 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--subject-color, #fff);
+    }
+
+    .card-lesson-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .card-lesson-list li {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        padding: 4px 0;
+        border-bottom: 1px dashed rgba(255,255,255,0.05);
+    }
+    .card-lesson-list li:last-child {
+        border-bottom: none;
+    }
+    .subject-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--subject-color, #fff);
+        flex-shrink: 0;
+        box-shadow: 0 0 10px var(--subject-color);
+    }
+
+    /* --- MODALS & OVERLAYS --- */
+    .search-overlay, .modal {
+      position: fixed; inset: 0; 
+      background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
+      z-index: 100; display: none; align-items: center; justify-content: center;
+    }
+    .search-overlay.open, .modal.open { display: flex; }
+
+    .modal-card {
+      background: #0f172a;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      width: 95%; max-width: 800px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      
+      /* POP-OUT ANIMATION */
+      transform: scale(0.9);
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bouncy transition */
+    }
+    .modal.open .modal-card {
+      transform: scale(1);
+      opacity: 1;
+    }
+    
+    .modal-header { 
+      display: flex; justify-content: space-between; align-items: center; 
+      margin-bottom: 20px; 
+      border-bottom: 1px solid var(--border-color); padding-bottom: 10px; 
+    }
+    .modal-header h3 { margin: 0; color: #fff; font-size: 1.5rem; }
+    .modal-header button { background: none; border: none; color: #fff; font-size: 1.2rem; }
+
+    /* Modal Content: Lesson List */
+    .lesson-item {
+        padding: 15px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background-color 0.2s;
+    }
+    .lesson-item:hover {
+        background-color: rgba(255,255,255,0.05);
+        padding-left: 10px;
+    }
+    .lesson-item-title {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #fff;
+    }
+    .lesson-item-meta {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+    
+    /* Modal Content: Parts List */
+    .part-list-container {
+        padding: 0;
+    }
+    .part-row {
+      display: flex; align-items: center; gap: 15px;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      transition: background 0.2s;
+    }
+    .part-row:last-child { border-bottom: none; }
+    .part-row:hover { background: rgba(255,255,255,0.05); }
+
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--subject-color, var(--text-muted));
+      flex-shrink: 0; box-shadow: 0 0 8px var(--subject-color);
+    }
+
+    .part-meta { flex: 1; }
+    .part-title { font-size: 1rem; font-weight: 600; color: #e2e8f0; margin-bottom: 4px; }
+    .part-desc { font-size: 0.85rem; color: #64748b; }
+
+    .part-actions .btn {
+      background: transparent;
+      color: var(--accent-blue);
+      border: 1px solid var(--border-color);
+      padding: 8px 16px; border-radius: 8px;
+      font-size: 0.85rem; font-weight: 600;
+      transition: all 0.2s;
+    }
+    .part-actions .btn:hover { 
+      background: var(--accent-blue); color: #000; border-color: var(--accent-blue);
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+    }
+
+    /* Back button inside Modal */
+    .modal-back-btn {
+        background: transparent; border: none; color: var(--text-muted);
+        font-size: 1rem; margin-right: 15px;
+        transition: color 0.2s;
+    }
+    .modal-back-btn:hover { color: #fff; }
+
+    /* --- FOOTER --- */
+    .footer {
+      margin-top: 80px;
+      background: #000;
+      border-top: 1px solid var(--border-color);
+      padding: 60px 0 30px;
+      color: var(--text-muted);
+    }
+    .footer-inner { display: flex; flex-direction: column; align-items: center; gap: 20px; text-align: center; }
+    .footer-social { display: flex; gap: 15px; }
+    .footer-social a { 
+      width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.1); 
+      display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.2rem;
+      transition: 0.2s;
+    }
+    .footer-social a:hover { background: var(--accent-blue); transform: translateY(-3px); }
+    
+    .footer-menu { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+    .footer-menu a:hover { color: var(--accent-blue); }
+    .footer-copy { font-size: 0.8rem; color: #475569; margin-top: 20px; }
+
+  </style>
 </head>
 <body>
+  
   <!-- Header -->
   <header class="header">
     <div class="container nav">
       <a class="brand" href="index.html">
-        <img alt="selenix logo">
-        <div class="logo-text">Obscura Vault</div>
+        <img alt="logo">
+        <div class="logo-text">OBSCURA <span class="highlight">VAULT</span></div>
       </a>
       <nav class="nav-links">
         <a href="index.html">Home</a>
         <a href="index.html#about">About</a>
-        <a href="lessons.html">Lessons</a>
+        <a href="lessons.html" class="active">Lessons</a>
         <a href="index.html#contact">Contact</a>
         <button class="icon-btn" data-open-search aria-label="Search">
-  <img
-    class="search-icon"
-    src="https://cdn-icons-png.flaticon.com/128/3686/3686896.png"
-    alt="Search"
-    loading="lazy"
-    decoding="async">
-</button>
+          <i class='bx bx-search'></i>
+        </button>
       </nav>
       <button class="icon-btn hamburger" aria-label="Menu">
         <span></span><span></span><span></span>
@@ -44,7 +332,7 @@
     <div class="mobile-searchbar">
       <form id="mobileSearchForm">
         <input id="mobileSearch" placeholder="Search lessons...">
-        <button type="submit">Search</button>
+        <button type="submit" class="hidden"></button>
       </form>
     </div>
   </header>
@@ -52,202 +340,467 @@
   <!-- Search overlay -->
   <div class="search-overlay" id="searchOverlay">
     <div class="search-card">
-      <h3>Search lessons</h3>
+      <h3>Search Database</h3>
       <div class="search-row">
-        <input id="globalSearchInput" placeholder="Type keyword...">
+        <input id="globalSearchInput" placeholder="Enter keywords...">
         <button id="globalSearchGo">Search</button>
       </div>
     </div>
   </div>
 
-  <div class="container">
+  <!-- Main Content -->
+  <div class="container" style="margin-top: 40px;">
     <div class="back-row">
-      <button data-back>← Back</button>
+      <button data-back><i class='bx bx-left-arrow-alt'></i> Back</button>
     </div>
-    <h2>Lessons</h2>
-    <div class="chips" id="subjectChips"></div>
-    <div class="lessons-wrap" id="lessonsWrap"></div>
+    
+    <h2 class="page-title">LESSON NAMES</h2>
+    
+    <!-- New grid container for Subject Cards -->
+    <div class="subject-card-grid" id="subjectCardGrid">
+       <!-- Loading State -->
+       <div style="grid-column: 1 / -1; text-align:center; padding: 40px; color: var(--text-muted);">
+         <i class='bx bx-loader-alt bx-spin' style="font-size: 2rem; margin-bottom: 10px; display:block;"></i>
+         Accessing Data Stream...
+       </div>
+    </div>
   </div>
 
-  <!-- Subject picker modal (opens on load) -->
-  <div class="modal open" id="subjectPicker">
+  <!-- Lesson Detail Modal (Replaced subject picker modal) -->
+  <div class="modal" id="lessonDetailModal">
     <div class="modal-card">
       <div class="modal-header">
-        <h3>Select the Category</h3>
-        <button class="icon-btn" id="closePicker">✕</button>
+        <div style="display:flex; align-items:center;">
+            <button class="modal-back-btn hidden" id="modalBackBtn"><i class='bx bx-left-arrow-alt'></i></button>
+            <h3 id="modalTitle"></h3>
+        </div>
+        <button class="icon-btn" id="closeDetailModal"><i class='bx bx-x'></i></button>
       </div>
-      <div class="modal-body">
-        <div class="chips" id="pickerChips"></div>
-        <p style="margin-top:10px;color:#666;font-size:14px">Tip: You can change the category anytime with the chips above.</p>
+      <div class="modal-body" id="modalBodyContent">
+        <!-- Content will be dynamically inserted here (Lesson List or Part List) -->
       </div>
     </div>
   </div>
 
   <!-- Footer -->
   <footer class="footer">
-    <div class="footer-top-art"></div>
     <div class="container">
-      <div class="footer-inner" style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;text-align:center;gap:18px;padding-top:10px;padding-bottom:50px">
-        <div class="footer-social" style="display:flex;gap:18px">
-          <a href="https://t.me/example" target="_blank" aria-label="Telegram" title="Telegram"
-             style="width:44px;height:44px;border-radius:50%;background:#fff;color:#111;display:inline-flex;align-items:center;justify-content:center;font-size:26px;text-decoration:none">
-            <i class='bx bxl-telegram'></i>
-          </a>
-          <a href="https://www.youtube.com/@SeleNix_Offcial" target="_blank" aria-label="YouTube" title="YouTube"
-             style="width:44px;height:44px;border-radius:50%;background:#fff;color:#111;display:inline-flex;align-items:center;justify-content:center;font-size:26px;text-decoration:none">
-            <i class='bx bxl-youtube'></i>
-          </a>
+      <div class="footer-inner">
+        <div class="footer-social">
+          <a href="#" target="_blank"><i class='bx bxl-telegram'></i></a>
+          <a href="#" target="_blank"><i class='bx bxl-youtube'></i></a>
         </div>
-        <nav class="footer-menu" style="display:flex;gap:26px;flex-wrap:wrap;justify-content:center">
-          <a href="index.html" style="color:#eaeaea;text-decoration:none">Home</a>
-          <a href="index.html#about" style="color:#eaeaea;text-decoration:none">About</a>
-          <a href="lessons.html" style="color:#eaeaea;text-decoration:none">Lessons</a>
-          <a href="index.html#contact" style="color:#eaeaea;text-decoration:none">Contact</a>
+        <nav class="footer-menu">
+          <a href="index.html">Home</a>
+          <a href="index.html#about">About</a>
+          <a href="lessons.html">Lessons</a>
+          <a href="index.html#contact">Contact</a>
         </nav>
-        <div class="footer-copy" style="font-size:13px;color:#bdbdbd">© 2025 Obscura Vault. All Rights Reserved</div>
+        <div class="footer-copy">© 2025 Obscura Vault. Engineered for Excellence.</div>
       </div>
     </div>
   </footer>
 
-  <!-- Shared helpers -->
-  <script src="selenix.js"></script>
+  <!-- 1. SELENIX JS LIBRARY (Embedded & Adjusted) -->
+  <script>
+    (() => {
+      'use strict';
+      // --- CONFIGURATION ---
+      const GOOGLE_SHEETS_API_KEY = "AIzaSyDzdiDMtiY250DS-lDuZeIZOocw9oqMlhM";
+      const SPREADSHEET_ID = "1VOdK-3yofh-wLkbXRh-T7FiXgDjVFrkd4uszkRre1V0";
+      const TAB_NAME = "Lessons";
+      const LOGO_URL = ""; 
 
-  <!-- Page script -->
-<script>
-  const state = { items:[], groups:[], subjects:[], colors:{}, activeSubject:'' };
-
-  function readQuery(){
-    const p = new URLSearchParams(location.search);
-    const subject = p.get('subject'); const lesson = p.get('lesson');
-    return {subject, lesson};
-  }
-
-  function buildSubjectChips(){
-    const wrap = document.getElementById('subjectChips');
-    wrap.innerHTML = '';
-    state.subjects.forEach(sub=>{
-      wrap.appendChild(chip(sub, sub === state.activeSubject, state.colors[sub]));
-    });
-  }
-
-  function chip(label, active, color){
-    const el = document.createElement('button');
-    el.className = 'chip' + (active?' active':'');
-    if(color) el.style.setProperty('--subject-color', color);
-    el.textContent = label;
-    el.addEventListener('click', ()=>{
-      state.activeSubject = label;
-      buildSubjectChips();
-      renderLessons();
-      // Added this line to close the modal after a chip is clicked
-      document.getElementById('subjectPicker').classList.remove('open');
-    });
-    return el;
-  }
-
-  function renderLessons(){
-    const wrap = document.getElementById('lessonsWrap');
-    wrap.innerHTML = '';
-    let list = state.groups;
-    if (state.activeSubject) list = list.filter(g=>g.subject === state.activeSubject);
-
-    const q = readQuery();
-    if (q.subject && q.lesson){
-      list = list.filter(g=>g.subject===q.subject && g.lesson===q.lesson);
-    }
-
-    list.forEach(group=>{
-      const groupDiv = document.createElement('div');
-      groupDiv.className = 'lesson-group';
-      groupDiv.style.setProperty('--subject-color', state.colors[group.subject] || '#000');
-
-      const head = document.createElement('div');
-      head.className = 'lesson-header';
-      // Removed the subject dot from the lesson header
-      // head.appendChild(selenix.makeSubjectDot(state.colors[group.subject]));
-      const title = document.createElement('div');
-      title.className = 'lesson-title';
-      title.textContent = `${group.lesson}`;
-      head.appendChild(title);
-      const subtitle = document.createElement('div');
-      subtitle.className = 'lesson-subtitle';
-      subtitle.textContent = `${group.subject} • ${selenix.formatCount(group.parts.length)}`;
-      head.appendChild(subtitle);
-      groupDiv.appendChild(head);
-
-      const partsWrap = document.createElement('div');
-      partsWrap.className = 'parts';
-      group.parts.forEach(p=>{
-        const row = document.createElement('div');
-        row.className = 'part-row';
-        // Re-added the part dot
-        const dot = document.createElement('span');
-        dot.className = 'dot';
-        dot.style.setProperty('--subject-color', state.colors[group.subject]);
-        row.appendChild(dot);
-
-        const meta = document.createElement('div');
-        meta.className = 'part-meta';
-        const t = document.createElement('div'); t.className='part-title'; t.textContent = p.partTitle || '(Untitled part)';
-        const d = document.createElement('div'); d.className='part-desc'; d.textContent = p.description || '';
-        meta.appendChild(t); meta.appendChild(d);
-        row.appendChild(meta);
-
-        const actions = document.createElement('div'); actions.className='part-actions';
-        const watch = document.createElement('button'); watch.className='btn'; watch.textContent='Open Player';
-        watch.addEventListener('click', ()=> {
-          window.location.href = `player.html?rid=${encodeURIComponent(p.id)}`;
-        });
-        actions.appendChild(watch);
-        row.appendChild(actions);
-
-        partsWrap.appendChild(row);
-      });
-      groupDiv.appendChild(partsWrap);
-      wrap.appendChild(groupDiv);
-    });
-  }
-
-  async function boot(){
-    selenix.initHeader();
-    try {
-      state.items = await selenix.fetchSheet();
-      state.groups = selenix.groupByLesson(state.items);
-      // Sort subjects alphabetically
-      state.subjects = selenix.uniqueSubjects(state.items).sort((a,b)=>a.localeCompare(b));
-      state.colors = selenix.subjectColorMap(state.subjects);
-
-      // Set active subject to alphabetically first if not specified
-      const q = readQuery();
-      if (q.subject){
-        state.activeSubject = q.subject;
-      } else {
-        state.activeSubject = state.subjects[0] || '';
+      /* ---------- NAV / SEARCH OVERLAY / MOBILE ---------- */
+      function initHeader(){
+        const logoImg = document.querySelector('.brand img');
+        if (logoImg && LOGO_URL) {
+          logoImg.src = LOGO_URL;
+          logoImg.style.display = 'block';
+        }
+    
+        const burger = document.querySelector('.hamburger');
+        const drawer = document.querySelector('.mobile-drawer');
+        if (burger && drawer){
+          burger.addEventListener('click', ()=>drawer.classList.toggle('open'));
+        }
+    
+        // Search overlay
+        const openBtn = document.querySelectorAll('[data-open-search]');
+        const overlay = document.getElementById('searchOverlay');
+        const input = document.getElementById('globalSearchInput');
+        const goBtn = document.getElementById('globalSearchGo');
+    
+        openBtn.forEach(b=>b.addEventListener('click', ()=>{
+          if (!overlay) return;
+          overlay.classList.add('open');
+          setTimeout(()=>input && input.focus(), 50);
+        }));
+        if (overlay){
+          overlay.addEventListener('click', (e)=>{
+            if (e.target === overlay) overlay.classList.remove('open');
+          });
+        }
+        if (goBtn){
+          goBtn.addEventListener('click', ()=>{
+            const q = (input && input.value || '').trim();
+            if(q) window.location.href = `search.html?q=${encodeURIComponent(q)}`;
+          });
+        }
+        if (input){
+          input.addEventListener('keydown', (e)=>{
+            if(e.key==='Enter'){ e.preventDefault(); goBtn && goBtn.click(); }
+          });
+        }
+    
+        // Mobile searchbar submit
+        const mForm = document.getElementById('mobileSearchForm');
+        const mInput = document.getElementById('mobileSearch');
+        if (mForm){
+          mForm.addEventListener('submit', (e)=>{
+            e.preventDefault();
+            const q = (mInput && mInput.value || '').trim();
+            if(q) window.location.href = `search.html?q=${encodeURIComponent(q)}`;
+          });
+        }
+    
+        // Back buttons
+        const backBtns = document.querySelectorAll('[data-back]');
+        backBtns.forEach(b=>b.addEventListener('click', ()=>{
+          if (window.history.length > 1) window.history.back();
+          else window.location.href = 'index.html';
+        }));
       }
+    
+      /* ---------- DATA ACCESS ---------- */
+      async function fetchSheet(){
+        const range = encodeURIComponent(`${TAB_NAME}!A1:H`);
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?key=${GOOGLE_SHEETS_API_KEY}`;
+        
+        try {
+            const res = await fetch(url);
+            if(!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            const data = await res.json();
+            const rows = data.values || [];
+            if (!rows.length) return [];
+        
+            const header = rows[0].map(h => (h||'').trim());
+            const idx = {
+              subject: header.indexOf('Subject'),
+              lesson: header.indexOf('Lesson'),
+              part: header.indexOf('Part Title'),
+              desc: header.indexOf('Description'),
+              yt: header.indexOf('YouTube Embed'),
+              tg: header.indexOf('Telegram Link'),
+              rs: header.indexOf('Resource Link'),
+              th: header.indexOf('Thumbnail')
+            };
+        
+            const out = [];
+            for(let i=1;i<rows.length;i++){
+              const r = rows[i];
+              out.push({
+                _rowIndex: i+1,
+                id: `r${i}`,
+                subject: (r[idx.subject]||'').trim(),
+                lesson: (r[idx.lesson]||'').trim(),
+                partTitle: (r[idx.part]||'').trim(),
+                description: (r[idx.desc]||'').trim(),
+                youtube: normalizeYouTube(r[idx.yt]||''),
+                telegram: (r[idx.tg]||'').trim(),
+                resource: (r[idx.rs]||'').trim(),
+                thumb: (r[idx.th]||'').trim()
+              });
+            }
+            return out;
+        } catch (error) {
+            console.error("Error fetching sheet data:", error);
+            // Implement simple exponential backoff for retries (omitted for brevity here)
+            throw error; 
+        }
+      }
+    
+      function normalizeYouTube(v){
+        if(!v) return '';
+        const idFromWatch = v.match(/[?&]v=([^&]+)/);
+        const idFromShort = v.match(/youtu\.be\/([^?&]+)/);
+        const idFromEmbed = v.match(/\/embed\/([^?&]+)/);
+        let id = '';
+        if (idFromWatch) id = idFromWatch[1];
+        else if (idFromShort) id = idFromShort[1];
+        else if (idFromEmbed) id = idFromEmbed[1];
+        else if (/^[A-Za-z0-9_-]{8,}$/.test(v)) id = v;
+        if(!id) return v;
+        return `https://www.youtube.com/embed/${id}`;
+      }
+    
+      function slugify(s){
+        return (s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+      }
+    
+      function groupByLesson(items){
+        const map = new Map();
+        items.forEach(it=>{
+          const key = `${it.subject}||${it.lesson}`;
+          if (!it.subject || !it.lesson) return; // Skip items without subject/lesson
+          if (!map.has(key)) map.set(key, {
+            subject: it.subject, lesson: it.lesson, parts: [], lessonId: slugify(`${it.subject}-${it.lesson}`)
+          });
+          map.get(key).parts.push(it);
+        });
+        return Array.from(map.values())
+          .sort((a,b)=> a.subject.localeCompare(b.subject) || a.lesson.localeCompare(b.lesson));
+      }
+    
+      function uniqueSubjects(items){
+        return Array.from(new Set(items.map(x=>x.subject).filter(Boolean))).sort((a,b)=>a.localeCompare(b));
+      }
+    
+      // Updated Color Palette for Dark Theme
+      function subjectColorMap(subjects){
+        // Brighter neon colors that pop on dark background
+        const palette = ['#60a5fa', '#a78bfa', '#f472b6', '#34d399', '#fbbf24', '#f87171', '#4ade80', '#c084fc'];
+        let map = {};
+        try { map = JSON.parse(localStorage.getItem('selenixSubjectColors')||'{}'); } catch(_){ map = {}; }
+    
+        const used = new Set(Object.values(map));
+        subjects.forEach(s=>{
+          if (!map[s]){
+            let color = palette.find(c => !used.has(c));
+            if (!color) color = `hsl(${Object.keys(map).length*47 % 360}, 70%, 60%)`; 
+            map[s] = color;
+            used.add(color);
+          }
+        });
+    
+        localStorage.setItem('selenixSubjectColors', JSON.stringify(map));
+        return map;
+      }
+      
+      function makeSubjectDot(color){
+        const span = document.createElement('span');
+        span.className = 'subject-dot'; 
+        span.style.setProperty('--subject-color', color);
+        return span;
+      }
+    
+      function formatCount(n){ return `${n} Part${n===1?'':'s'}`; }
+    
+      // Expose globals
+      window.selenix = {
+        initHeader, fetchSheet, normalizeYouTube, groupByLesson,
+        uniqueSubjects, subjectColorMap, slugify, makeSubjectDot, formatCount
+      };
+    
+    })();
+  </script>
 
-      const pick = document.getElementById('pickerChips');
-      pick.innerHTML = '';
-      state.subjects.forEach(s=>{
-        const c = chip(s, s === state.activeSubject, state.colors[s]);
-        pick.appendChild(c);
-      });
+  <!-- 2. PAGE LOGIC -->
+  <script>
+    const state = { 
+        items: [], 
+        groups: [], 
+        subjects: [], 
+        colors: {}, 
+        groupsBySubject: {}, // Key: Subject Name, Value: Array of lesson groups
+        modalState: 'lessons', // 'lessons' or 'parts'
+        currentSubject: null, 
+        currentLessonGroup: null 
+    };
+    
+    // DOM elements for the modal
+    const modal = document.getElementById('lessonDetailModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBodyContent = document.getElementById('modalBodyContent');
+    const modalBackBtn = document.getElementById('modalBackBtn');
 
-      document.getElementById('closePicker').addEventListener('click', ()=>{
-        document.getElementById('subjectPicker').classList.remove('open');
-      });
-
-      if (q.subject){ document.getElementById('subjectPicker').classList.remove('open'); }
-
-      buildSubjectChips();
-      renderLessons();
-    } catch (e){
-      console.error(e);
-      document.getElementById('lessonsWrap').innerHTML = '<p>Failed to load lessons. Please check your sheet sharing settings.</p>';
+    function readQuery(){
+      const p = new URLSearchParams(location.search);
+      return {subject: p.get('subject'), lesson: p.get('lesson')};
     }
-  }
-  boot();
-</script>
+  
+    // New function to render the main Subject Cards
+    function renderSubjectCards(){
+        const grid = document.getElementById('subjectCardGrid');
+        grid.innerHTML = ''; // Clear loading state
+        
+        if (state.subjects.length === 0) {
+             grid.innerHTML = '<div style="grid-column: 1 / -1; text-align:center; padding: 40px; color: var(--text-muted);">No learning modules found in the data stream.</div>';
+             return;
+        }
+
+        state.subjects.forEach(subject => {
+            const lessons = state.groupsBySubject[subject];
+            const color = state.colors[subject];
+            const totalParts = lessons.reduce((sum, l) => sum + l.parts.length, 0);
+
+            const card = document.createElement('div');
+            card.className = 'subject-card';
+            card.style.setProperty('--subject-color', color);
+            card.style.setProperty('--subject-color-shadow', color + '4D'); // 4D is 30% transparency
+
+            // Header
+            const header = document.createElement('div');
+            header.className = 'subject-card-header';
+            header.appendChild(selenix.makeSubjectDot(color));
+            
+            const h3 = document.createElement('h3');
+            h3.textContent = subject;
+            header.appendChild(h3);
+            card.appendChild(header);
+
+            // Lesson List Preview
+            const ul = document.createElement('ul');
+            ul.className = 'card-lesson-list';
+            lessons.slice(0, 5).forEach(lessonGroup => {
+                const li = document.createElement('li');
+                li.textContent = `▶ ${lessonGroup.lesson} (${lessonGroup.parts.length})`;
+                ul.appendChild(li);
+            });
+            
+            if (lessons.length > 5) {
+                const li = document.createElement('li');
+                li.style.fontStyle = 'italic';
+                li.style.color = 'var(--accent-blue)';
+                li.textContent = `... and ${lessons.length - 5} more lessons.`;
+                ul.appendChild(li);
+            }
+
+            card.appendChild(ul);
+
+            // Total Parts Info
+            const info = document.createElement('p');
+            info.style.marginTop = '15px';
+            info.style.color = 'var(--text-main)';
+            info.style.fontWeight = '600';
+            info.textContent = `Total Videos: ${totalParts}`; // Renamed label
+            card.appendChild(info);
+
+            // Click listener to open modal
+            card.addEventListener('click', () => openLessonModal(subject));
+            grid.appendChild(card);
+        });
+    }
+    
+    // --- MODAL LOGIC ---
+    
+    function closeDetailModal() {
+        modal.classList.remove('open');
+        // Reset state after closing
+        state.currentSubject = null;
+        state.currentLessonGroup = null;
+        state.modalState = 'lessons';
+        modalBackBtn.classList.add('hidden');
+    }
+
+    function openLessonModal(subject) {
+        state.currentSubject = subject;
+        state.modalState = 'lessons';
+        state.currentLessonGroup = null; // Important: reset lesson group
+
+        renderLessonList();
+        modal.classList.add('open');
+        modal.style.setProperty('--subject-color', state.colors[subject]); // Apply color to modal card
+    }
+
+    function renderLessonList() {
+        const lessons = state.groupsBySubject[state.currentSubject];
+        modalTitle.textContent = `${state.currentSubject} Lessons`;
+        modalBackBtn.classList.add('hidden');
+        
+        modalBodyContent.innerHTML = '';
+        
+        lessons.forEach(lessonGroup => {
+            const item = document.createElement('div');
+            item.className = 'lesson-item';
+            
+            const title = document.createElement('div');
+            title.className = 'lesson-item-title';
+            title.textContent = lessonGroup.lesson;
+            item.appendChild(title);
+            
+            const meta = document.createElement('div');
+            meta.className = 'lesson-item-meta';
+            meta.textContent = selenix.formatCount(lessonGroup.parts.length) + ' ❯';
+            item.appendChild(meta);
+            
+            item.addEventListener('click', () => showLessonParts(lessonGroup));
+            modalBodyContent.appendChild(item);
+        });
+    }
+
+    function showLessonParts(lessonGroup) {
+        state.currentLessonGroup = lessonGroup;
+        state.modalState = 'parts';
+        modalTitle.textContent = `${lessonGroup.lesson} Details`;
+        modalBackBtn.classList.remove('hidden');
+
+        modalBodyContent.innerHTML = '';
+        
+        lessonGroup.parts.forEach(p => {
+            const row = document.createElement('div');
+            row.className = 'part-row';
+            
+            row.appendChild(selenix.makeSubjectDot(state.colors[state.currentSubject]));
+    
+            const meta = document.createElement('div');
+            meta.className = 'part-meta';
+            const t = document.createElement('div'); t.className='part-title'; t.textContent = p.partTitle || '(Untitled part)';
+            const d = document.createElement('div'); d.className='part-desc'; d.textContent = p.description || 'No description available.';
+            meta.appendChild(t); meta.appendChild(d);
+            row.appendChild(meta);
+    
+            const actions = document.createElement('div'); actions.className='part-actions';
+            const watch = document.createElement('button'); watch.className='btn'; watch.textContent='Access Video';
+            watch.addEventListener('click', ()=> {
+              window.location.href = `player.html?rid=${encodeURIComponent(p.id)}`;
+            });
+            actions.appendChild(watch);
+            row.appendChild(actions);
+            modalBodyContent.appendChild(row);
+        });
+    }
+    
+    // Handler for the modal back button
+    modalBackBtn.addEventListener('click', () => {
+        if (state.modalState === 'parts') {
+            renderLessonList(); // Go back to lesson list
+            state.modalState = 'lessons';
+            state.currentLessonGroup = null;
+        }
+        // If modalState is 'lessons', the back button is hidden, so no action needed.
+    });
+
+    // Close modal event
+    document.getElementById('closeDetailModal').addEventListener('click', closeDetailModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeDetailModal();
+    });
+
+
+    // --- BOOTSTRAP ---
+    async function boot(){
+      selenix.initHeader();
+      try {
+        state.items = await selenix.fetchSheet();
+        state.groups = selenix.groupByLesson(state.items);
+        state.subjects = selenix.uniqueSubjects(state.items);
+        state.colors = selenix.subjectColorMap(state.subjects);
+        
+        // Group lessons by subject for easy access
+        state.subjects.forEach(sub => {
+            state.groupsBySubject[sub] = state.groups.filter(g => g.subject === sub);
+        });
+
+        // Initial render
+        renderSubjectCards();
+      } catch (e){
+        console.error(e);
+        const grid = document.getElementById('subjectCardGrid');
+        if(grid) grid.innerHTML = '<div style="grid-column: 1 / -1; color:#f87171;text-align:center;padding:20px; border: 1px solid #7f1d1d; background: rgba(127,29,29,0.2); border-radius: 8px;">Failed to retrieve data stream. Please check API configuration or the sheet structure.</div>';
+      }
+    }
+    boot();
+  </script>
 </body>
-
 </html>
-
