@@ -3,258 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Obscura Vault</title>
-    <!-- Favicon using SVG for dynamic theming -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50%' y='50%' style='dominant-baseline:central; text-anchor:middle; font-size:90px; fill:%23000;' class='favicon-text'>OV</text></svg>">
+    <title>ERROR [404] | Obscura Vault</title>
+    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
+        /* Define custom colors and font for a stark, digital look */
+        .bg-dark-void {
+            background-color: #030712; /* Deep Slate Black */
         }
-        .light-theme {
-            background-color: #ffffff;
-            color: #18181b;
+        
+        /* Define a custom neon glow for Primary Cyan elements (404 Code) */
+        .neon-cyan {
+            color: #0ef; /* Bright Cyan */
+            text-shadow:
+                0 0 5px #0ef,
+                0 0 15px #0ef,
+                0 0 30px #0ef,
+                0 0 60px #07f;
         }
-        .dark-theme {
-            background-color: #18181b;
-            color: #e4e4e7;
+
+        /* Define a custom neon glow for Secondary Blue elements (Header, Button details) */
+        .neon-blue-header {
+            color: #4db8ff; /* Light Blue */
+            text-shadow:
+                0 0 5px #4db8ff,
+                0 0 15px #4db8ff,
+                0 0 30px #4db8ff,
+                0 0 60px #0066cc; /* Darker Blue Glow */
+        }
+        
+        /* Glitch/Flicker Animation - now only uses the blue/cyan glow */
+        @keyframes flicker {
+            0%, 18%, 22%, 25%, 53%, 57%, 100% {
+                opacity: 1;
+                transform: skewX(0deg);
+                /* Use cyan glow */
+                text-shadow: 0 0 4px #0ef, 0 0 11px #0ef, 0 0 19px #0ef, 0 0 40px #07f; 
+            }
+            20%, 24%, 55% {
+                opacity: 0.8;
+                transform: skewX(-5deg);
+                text-shadow: none;
+            }
+            56% {
+                opacity: 0.9;
+                transform: skewX(2deg);
+                text-shadow: 0 0 3px #0ef, 0 0 8px #0ef;
+            }
+        }
+
+        .flickering-404 {
+            animation: flicker 4s infinite alternate;
+        }
+
+        /* Container setup */
+        .full-page {
+            min-height: 100vh;
         }
     </style>
 </head>
-<body class="bg-white text-gray-900 antialiased min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-300">
+<body class="bg-dark-void text-gray-200 font-mono full-page flex flex-col antialiased">
 
-    <!-- Header Section - uses responsive flex for different screen sizes -->
-    <header class="w-full max-w-4xl mx-auto mb-10 text-center flex flex-col md:flex-row items-center justify-center gap-4">
-        <div class="flex flex-col md:flex-row items-center justify-center gap-4">
-            <img id="logo-image" src="https://yt3.ggpht.com/dvET-k1ACs8PRAd9xldf31l6o93UOpyDH9IVa7DSSOWQxGMX-KaFD0ffB6SCr5Z8rmMrn3O2jA=s88-c-k-c0x00ffffff-no-rj" alt="Obscura Vault Logo" class="rounded-full shadow-lg">
-            <h1 class="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900 mt-4 md:mt-0 transition-colors duration-300">Obscura Vault</h1>
-        </div>
-    </header>
+    <!-- Main Glitch Content Section -->
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div class="text-center space-y-10 max-w-xl w-full">
 
-    <!-- Main Content Section - fluid container with max width -->
-    <main class="w-full max-w-4xl mx-auto flex flex-col items-center">
-        <p class="text-gray-600 text-lg text-center mb-8 transition-colors duration-300">
-            A one-stop platform for A/L students – access physics theory, past papers, notes, and tutorials, all organized and easy to find.
-        </p>
+            <!-- Site Name Header (Now Blue Neon) -->
+            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-widest uppercase neon-blue-header">
+                // Obscura Vault
+            </h1>
 
-        <!-- Card Grid Section - responsive grid that changes columns based on screen size -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
-
-            <!-- Card 1: Explore -->
-            <div class="card bg-gray-100 rounded-xl shadow-lg p-6 flex flex-col items-center transition-colors duration-300">
-                <img class="card-image rounded-lg mb-4 w-full" src="https://img.youtube.com/vi/OYSPJ4dZJpQ/maxresdefault.jpg" alt="Explore thumbnail">
-                <h2 class="text-2xl font-bold mb-2 text-gray-900 text-center transition-colors duration-300">2025 Theory</h2>
-                <p class="text-center text-gray-600 text-sm mb-4 transition-colors duration-300">
-                    Dr. Darshana Ukuwela
-                </p>
-                <!-- Buttons - changes from column to row on small screens and up -->
-                <div class="flex flex-col sm:flex-row gap-4 w-full justify-center">
-                    <a href="https://obscuravault.vercel.app/lessons.html" class="button bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium py-3 px-4 rounded-lg border border-gray-300 transition-colors duration-200 w-full sm:w-auto text-center">
-                        Videos
-                    </a>
-                    <a href="https://obscuravault.vercel.app/" class="button bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium py-3 px-4 rounded-lg border border-gray-300 transition-colors duration-200 w-full sm:w-auto text-center">
-                        Resource
-                    </a>
-                </div>
+            <!-- 404 Code with Glitch Animation (Cyan) -->
+            <div class="flickering-404 text-[140px] sm:text-[200px] font-black leading-none neon-cyan transition duration-100">
+                404
             </div>
 
-            <!-- Card 2: Connect -->
-            <div class="card bg-gray-100 rounded-xl shadow-lg p-6 flex flex-col items-center transition-colors duration-300">
-                <img class="card-image rounded-lg mb-4 w-full" src="https://img.youtube.com/vi/XBHDENgD_KA/maxresdefault.jpg" alt="Connect thumbnail">
-                <h2 class="text-2xl font-bold mb-2 text-gray-900 text-center transition-colors duration-300">Mission A+</h2>
-                <p class="text-center text-gray-600 text-sm mb-4 transition-colors duration-300">
-                    Dr. Darshana Ukuwela
+            <!-- Error Messages -->
+            <div class="space-y-3">
+                <!-- Error text remains red as requested -->
+                <p class="text-xl sm:text-3xl font-bold text-red-500 tracking-wider neon-blue-header/80">
+                    [ERROR: SYSTEM_FAILURE]
                 </p>
-                <div class="flex flex-col sm:flex-row gap-4 w-full justify-center">
-                    <a href="https://dumap25.vercel.app/lessons.html" class="button bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium py-3 px-4 rounded-lg border border-gray-300 transition-colors duration-200 w-full sm:w-auto text-center">
-                        Videos
-                    </a>
-                    <a href="https://dumap25.vercel.app/resources.html" class="button bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium py-3 px-4 rounded-lg border border-gray-300 transition-colors duration-200 w-full sm:w-auto text-center">
-                        Resource
-                    </a>
-                </div>
+                <p class="text-lg text-gray-400">
+                    Target path corrupted or deleted. Initiate recovery protocol.
+                </p>
             </div>
 
-            <!-- Card 3: Contribute -->
-            <div class="card bg-gray-100 rounded-xl shadow-lg p-6 flex flex-col items-center transition-colors duration-300">
-                <img class="card-image rounded-lg mb-4 w-full" src="https://img.youtube.com/vi/6br8QwzwL4I/maxresdefault.jpg" alt="Contribute thumbnail">
-                <h2 class="text-2xl font-bold mb-2 text-gray-900 text-center transition-colors duration-300">Final Paper Class</h2>
-                <p class="text-center text-gray-600 text-sm mb-4 transition-colors duration-300">
-                    Dr. Darshana Ukuwela
-                </p>
-                <div class="flex flex-col sm:flex-row gap-4 w-full justify-center">
-                    <a href="https://dufinalpapers25.vercel.app/lessons.html" class="button bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium py-3 px-4 rounded-lg border border-gray-300 transition-colors duration-200 w-full sm:w-auto text-center">
-                        Videos
-                    </a>
-                    <a href="https://dufinalpapers25.vercel.app/resources.html" class="button bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium py-3 px-4 rounded-lg border border-gray-300 transition-colors duration-200 w-full sm:w-auto text-center">
-                        Resource
-                    </a>
-                </div>
-            </div>
+            <!-- Home Button (Blue Accent) -->
+            <a href="https://obscuravault.vercel.app/"
+               class="inline-block px-10 py-3 mt-8 text-lg font-bold text-white bg-blue-700 rounded-full shadow-2xl shadow-cyan-500/50 hover:bg-cyan-500 transition duration-500 transform hover:scale-[1.05] focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-70 uppercase tracking-widest">
+                > REBOOT_HOME
+            </a>
 
         </div>
     </main>
 
-    <!-- Optional Footer -->
-    <footer class="w-full max-w-4xl mx-auto mt-10 text-center">
-        <p class="text-gray-600 text-sm transition-colors duration-300">
-            © 2024 Obscura Vault. All rights reserved.
-        </p>
+    <!-- Footer with Copyright -->
+    <footer class="p-4 border-t border-cyan-900/40">
+        <div class="max-w-7xl mx-auto text-center text-sm text-gray-500">
+            <p class="neon-cyan opacity-50">
+                &copy; 2025 Obscura Vault. All rights reserved. [INIT: Protocol 404]
+            </p>
+        </div>
     </footer>
-
-    <!-- Theme Toggle Button with Icons - fixed position for all devices -->
-    <button id="theme-toggle-btn" class="fixed bottom-4 right-4 z-50 p-3 rounded-full shadow-lg transition-colors duration-300 bg-gray-200 hover:bg-gray-300">
-        <!-- Sun Icon for light theme -->
-        <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-900" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.75 7.5a.75.75 0 00-.75.75v.75a.75.75 0 001.5 0V8.25a.75.75 0 00-.75-.75zM12 18.75a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0v-2.25a.75.75 0 01.75-.75zM18.75 16.5a.75.75 0 00-.75.75v.75a.75.75 0 001.5 0v-.75a.75.75 0 00-.75-.75zM21 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5h2.25a.75.75 0 01.75.75zM16.5 18.75a.75.75 0 00.75-.75v-.75a.75.75 0 00-1.5 0v.75a.75.75 0 00.75.75zM3 12a.75.75 0 01-.75-.75h-2.25a.75.75 0 010-1.5h2.25A.75.75 0 013 12zM7.5 16.5a.75.75 0 00-.75.75v.75a.75.75 0 001.5 0v-.75a.75.75 0 00-.75-.75zM3.75 7.5a.75.75 0 00-.75.75v.75a.75.75 0 001.5 0V8.25a.75.75 0 00-.75-.75z" />
-        </svg>
-        <!-- Moon Icon for dark theme, initially hidden -->
-        <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white hidden" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M9.548 2.222a.75.75 0 01.298-.013c.875.148 1.638.995 2.126 2.053.488 1.058.484 2.193-.01 3.243-.495 1.05-.889 2.016-.902 2.046a.75.75 0 01-.774.209c-.015-.008-.029-.016-.044-.025-1.042-.656-1.897-1.488-2.651-2.454-1.503-1.921-2.5-4.66-2.5-7.522v-.108a.75.75 0 01.76-.749z" />
-        </svg>
-    </button>
-
-    <!-- JavaScript for theme toggling -->
-    <script>
-        const body = document.body;
-        const themeToggleButton = document.getElementById('theme-toggle-btn');
-        const sunIcon = document.getElementById('sun-icon');
-        const moonIcon = document.getElementById('moon-icon');
-        const mainTitle = document.querySelector('h1');
-        const mainDescription = document.querySelector('main p');
-        const footerText = document.querySelector('footer p');
-        const cards = document.querySelectorAll('.card');
-        const cardTitles = document.querySelectorAll('.card h2');
-        const cardDescriptions = document.querySelectorAll('.card p:not(#main-p)');
-        const buttons = document.querySelectorAll('.button');
-
-        const lightThemeClasses = {
-            body: ['bg-white', 'text-gray-900'],
-            mainTitle: ['text-gray-900'],
-            mainDescription: ['text-gray-600'],
-            footerText: ['text-gray-600'],
-            cards: ['bg-gray-100'],
-            cardTitles: ['text-gray-900'],
-            cardDescriptions: ['text-gray-600'],
-            buttons: ['bg-gray-200', 'hover:bg-gray-300', 'text-gray-900', 'border-gray-300'],
-            toggleButton: ['bg-gray-200', 'hover:bg-gray-300'],
-        };
-
-        const darkThemeClasses = {
-            body: ['bg-black', 'text-gray-100'],
-            mainTitle: ['text-white'],
-            mainDescription: ['text-gray-400'],
-            footerText: ['text-gray-600'],
-            cards: ['bg-zinc-900'],
-            cardTitles: ['text-white'],
-            cardDescriptions: ['text-gray-400'],
-            buttons: ['bg-zinc-800', 'hover:bg-zinc-700', 'text-white', 'border-gray-700'],
-            toggleButton: ['bg-gray-800', 'hover:bg-gray-700'],
-        };
-
-        function setLightTheme() {
-            body.classList.remove(...darkThemeClasses.body);
-            body.classList.add(...lightThemeClasses.body);
-
-            mainTitle.classList.remove(...darkThemeClasses.mainTitle);
-            mainTitle.classList.add(...lightThemeClasses.mainTitle);
-
-            mainDescription.classList.remove(...darkThemeClasses.mainDescription);
-            mainDescription.classList.add(...lightThemeClasses.mainDescription);
-
-            footerText.classList.remove(...darkThemeClasses.footerText);
-            footerText.classList.add(...lightThemeClasses.footerText);
-
-            cards.forEach(card => {
-                card.classList.remove(...darkThemeClasses.cards);
-                card.classList.add(...lightThemeClasses.cards);
-            });
-
-            cardTitles.forEach(title => {
-                title.classList.remove(...darkThemeClasses.cardTitles);
-                title.classList.add(...lightThemeClasses.cardTitles);
-            });
-
-            cardDescriptions.forEach(desc => {
-                desc.classList.remove(...darkThemeClasses.cardDescriptions);
-                desc.classList.add(...lightThemeClasses.cardDescriptions);
-            });
-
-            buttons.forEach(button => {
-                button.classList.remove(...darkThemeClasses.buttons);
-                button.classList.add(...lightThemeClasses.buttons);
-            });
-
-            themeToggleButton.classList.remove(...darkThemeClasses.toggleButton);
-            themeToggleButton.classList.add(...lightThemeClasses.toggleButton);
-
-            sunIcon.classList.remove('hidden');
-            moonIcon.classList.add('hidden');
-            
-            localStorage.setItem('theme', 'light');
-        }
-
-        function setDarkTheme() {
-            body.classList.remove(...lightThemeClasses.body);
-            body.classList.add(...darkThemeClasses.body);
-
-            mainTitle.classList.remove(...lightThemeClasses.mainTitle);
-            mainTitle.classList.add(...darkThemeClasses.mainTitle);
-
-            mainDescription.classList.remove(...lightThemeClasses.mainDescription);
-            mainDescription.classList.add(...darkThemeClasses.mainDescription);
-
-            footerText.classList.remove(...lightThemeClasses.footerText);
-            footerText.classList.add(...darkThemeClasses.footerText);
-
-            cards.forEach(card => {
-                card.classList.remove(...lightThemeClasses.cards);
-                card.classList.add(...darkThemeClasses.cards);
-            });
-
-            cardTitles.forEach(title => {
-                title.classList.remove(...lightThemeClasses.cardTitles);
-                title.classList.add(...darkThemeClasses.cardTitles);
-            });
-
-            cardDescriptions.forEach(desc => {
-                desc.classList.remove(...lightThemeClasses.cardDescriptions);
-                desc.classList.add(...darkThemeClasses.cardDescriptions);
-            });
-
-            buttons.forEach(button => {
-                button.classList.remove(...lightThemeClasses.buttons);
-                button.classList.add(...darkThemeClasses.buttons);
-            });
-            
-            themeToggleButton.classList.remove(...lightThemeClasses.toggleButton);
-            themeToggleButton.classList.add(...darkThemeClasses.toggleButton);
-
-            sunIcon.classList.add('hidden');
-            moonIcon.classList.remove('hidden');
-
-            localStorage.setItem('theme', 'dark');
-        }
-
-        // Apply saved theme on page load
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark') {
-            setDarkTheme();
-        } else {
-            setLightTheme();
-        }
-
-        // Toggle theme on button click
-        themeToggleButton.addEventListener('click', () => {
-            const currentTheme = localStorage.getItem('theme');
-            if (currentTheme === 'dark') {
-                setLightTheme();
-            } else {
-                setDarkTheme();
-            }
-        });
-    </script>
 
 </body>
 </html>
