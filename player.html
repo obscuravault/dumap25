@@ -400,7 +400,7 @@
       aspect-ratio: 16/9;
       user-select: none;
       -webkit-user-select: none;
-      display: block; /* Changed from 'none' to 'block' */
+      display: block;
       margin-bottom: 20px;
     }
 
@@ -920,9 +920,22 @@
       transition: all 0.2s ease-in-out;
       overflow-y: auto;
       border: 1px solid var(--muted-2);
+      z-index: 100;
+      max-height: 300px;
     }
     .settings-menu.active {
       display: flex;
+      animation: menuFadeIn 0.2s ease-out;
+    }
+    @keyframes menuFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(-8px);
+      }
     }
     .settings-menu .menu-section {
       display: flex;
@@ -968,9 +981,12 @@
       justify-content: space-between;
       align-items: center;
     }
-    .settings-menu .menu-item.active,
-    .settings-menu .menu-item:hover {
-      background: rgba(255, 255, 255, 0.2);
+    .settings-menu .menu-item.active {
+      background: var(--accent);
+      color: var(--ink);
+    }
+    .settings-menu .menu-item:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.15);
     }
     .settings-menu .menu-item {
         justify-content: flex-start;
@@ -1585,7 +1601,8 @@
       seeking:false, 
       isLive: false, 
       lastTap: 0, 
-      videoLoaded: false 
+      videoLoaded: false,
+      currentPlaybackRate: 1
     };
     const doubleTapDelay = 300;
     const doubleTapSkip = 5;
@@ -1938,6 +1955,111 @@
       }));
     }
 
+    // Render settings menu with playback rates
+    function renderSettingsMenu() {
+        if (!state.player) return;
+        const settingsMenu = $('#settingsMenu');
+        settingsMenu.innerHTML = '';
+
+        try {
+            // Get available playback rates from YouTube player
+            let rates;
+            if (state.player.getAvailablePlaybackRates) {
+                rates = state.player.getAvailablePlaybackRates();
+            } else {
+                // Fallback rates if method not available
+                rates = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+            }
+            
+            let currentRate;
+            if (state.player.getPlaybackRate) {
+                currentRate = state.player.getPlaybackRate();
+            } else {
+                currentRate = state.currentPlaybackRate || 1;
+            }
+
+            console.log('Available playback rates:', rates);
+            console.log('Current playback rate:', currentRate);
+
+            rates.forEach(rate => {
+                const btn = document.createElement('button');
+                btn.className = 'menu-item';
+                btn.textContent = rate === 1 ? 'Normal' : `${rate}x`;
+                btn.dataset.rate = rate;
+                
+                if (Math.abs(rate - currentRate) < 0.01) {
+                    btn.classList.add('active');
+                }
+                
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    console.log('Setting playback rate to:', rate);
+                    
+                    if (state.player && state.player.setPlaybackRate) {
+                        try {
+                            state.player.setPlaybackRate(rate);
+                            state.currentPlaybackRate = rate;
+                            
+                            // Update UI
+                            $$('#settingsMenu .menu-item').forEach(el => el.classList.remove('active'));
+                            btn.classList.add('active');
+                            
+                            // Update settings button text
+                            updateSettingsButtonText(rate);
+                            
+                            showInfoMessage(`Speed: ${rate}x`);
+                            
+                            // Close menu after selection
+                            setTimeout(() => {
+                                settingsMenu.classList.remove('active');
+                            }, 300);
+                        } catch (error) {
+                            console.error('Error setting playback rate:', error);
+                            showInfoMessage('Failed to change speed');
+                        }
+                    } else {
+                        console.error('Player or setPlaybackRate method not available');
+                        showInfoMessage('Speed control not available');
+                    }
+                });
+                
+                settingsMenu.appendChild(btn);
+            });
+        } catch (error) {
+            console.error('Error rendering settings menu:', error);
+            // Fallback to default rates
+            const fallbackRates = [0.5, 0.75, 1, 1.25, 1.5, 2];
+            fallbackRates.forEach(rate => {
+                const btn = document.createElement('button');
+                btn.className = 'menu-item';
+                btn.textContent = rate === 1 ? 'Normal' : `${rate}x`;
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (state.player && state.player.setPlaybackRate) {
+                        state.player.setPlaybackRate(rate);
+                        state.currentPlaybackRate = rate;
+                        $$('#settingsMenu .menu-item').forEach(el => el.classList.remove('active'));
+                        btn.classList.add('active');
+                        updateSettingsButtonText(rate);
+                        showInfoMessage(`Speed: ${rate}x`);
+                    }
+                });
+                settingsMenu.appendChild(btn);
+            });
+        }
+    }
+
+    // Update settings button text
+    function updateSettingsButtonText(rate) {
+        const settingsBtn = $('#settingsBtn');
+        if (settingsBtn) {
+            const span = settingsBtn.querySelector('span');
+            if (span) {
+                span.textContent = rate === 1 ? 'Speed' : `${rate}x`;
+            }
+        }
+    }
+
     // Wire up player controls
     function wireControls(){
       const playBtn = $('#playPause');
@@ -2105,15 +2227,15 @@
 
       // Settings menu
       settingsBtn.addEventListener('click', (e) => {
-        updateMenuHeight();
+        e.stopPropagation();
         settingsMenu.classList.toggle('active');
         if (settingsMenu.classList.contains('active')) {
           renderSettingsMenu();
         }
-        e.stopPropagation();
       });
 
-      document.body.addEventListener('click', (e) => {
+      // Close settings menu when clicking outside
+      document.addEventListener('click', (e) => {
         if (!settingsMenu.contains(e.target) && !settingsBtn.contains(e.target)) {
           settingsMenu.classList.remove('active');
         }
@@ -2334,31 +2456,6 @@
       });
     }
 
-    // Render settings menu
-    function renderSettingsMenu() {
-      if (!state.player) return;
-      const settingsMenu = $('#settingsMenu');
-      settingsMenu.innerHTML = '';
-
-      const rates = state.player.getAvailablePlaybackRates?.() || [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
-      const currentRate = state.player.getPlaybackRate();
-      rates.forEach(rate => {
-        const btn = document.createElement('button');
-        btn.className = 'menu-item';
-        btn.textContent = rate === 1 ? 'Normal' : `${rate}x`;
-        btn.dataset.rate = rate;
-        if (rate === currentRate) {
-          btn.classList.add('active');
-        }
-        btn.addEventListener('click', () => {
-          state.player.setPlaybackRate(rate);
-          $$('#settingsMenu .menu-item').forEach(el => el.classList.remove('active'));
-          btn.classList.add('active');
-        });
-        settingsMenu.appendChild(btn);
-      });
-    }
-
     // Update menu height
     function updateMenuHeight() {
       const playerShell = $('#playerShell');
@@ -2391,10 +2488,16 @@
         },
         events: {
           onReady: (e) => {
+            console.log('YouTube Player Ready');
             try {
               state.player.setPlaybackQuality('hd1080');
+              
+              // Test playback rate methods
+              console.log('Available playback rates:', state.player.getAvailablePlaybackRates());
+              console.log('Current playback rate:', state.player.getPlaybackRate());
+              
             } catch (e) {
-              console.log('Could not set playback quality');
+              console.log('Could not set playback quality or access rate methods');
             }
             wireControls();
             renderSettingsMenu();
@@ -2411,10 +2514,6 @@
           },
           onStateChange: (e) => {
             if (e.data === YT.PlayerState.PLAYING) {
-              const settingsMenu = $('#settingsMenu');
-              if (settingsMenu.classList.contains('active')) {
-                renderSettingsMenu();
-              }
               adjustVideoCrop();
             }
           }
