@@ -3,58 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mission A+ Resources - Obscura Vault</title>
+    <title>Mission A+ - Obscura Vault</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg: #0a1120;
+            --ink: #ffffff;
+            --ink-60: #a0b3d0;
+            --muted: #132036;
+            --muted-2: #1c2c4a;
+            --accent: #3182ce;
+            --accent2: #5a67d8;
+            --accent3: #63b3ed;
+            --accent4: #2c5aa0;
+        }
+        
         body {
             font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--ink);
             transition: background-color 0.3s, color 0.3s;
         }
+        
+        .orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        
         .container {
             max-width: 1200px;
         }
+        
         .card {
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-            background-color: #F5F5F5;
-            border: 1px solid #E0E0E0;
+            background: linear-gradient(145deg, var(--muted), var(--muted-2));
+            border: 1px solid var(--muted-2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
         }
+        
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 15px 40px rgba(49, 130, 206, 0.2),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border-color: var(--accent3);
         }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent3), transparent);
+        }
+        
         .filter-dropdown {
-            background-color: #E0E0E0;
-            color: #222222;
-            border: 1px solid #BDBDBD;
+            background-color: var(--muted);
+            color: var(--ink-60);
+            border: 1px solid var(--muted-2);
             transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
+        
+        .filter-dropdown:focus {
+            border-color: var(--accent3);
+            box-shadow: 0 0 0 2px rgba(99, 179, 237, 0.2);
+        }
+        
         .download-button {
-            background-color: #555555;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
             color: white;
-            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(49, 130, 206, 0.4);
+            position: relative;
+            overflow: hidden;
+            border: none;
         }
+        
         .download-button:hover {
-            background-color: #333333;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, var(--accent4), var(--accent));
+            box-shadow: 0 8px 25px rgba(49, 130, 206, 0.6);
+            transform: translateY(-2px);
         }
+        
+        .download-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .download-button:hover::before {
+            left: 100%;
+        }
+        
         .loading {
-            border: 4px solid rgba(0, 0, 0, 0.3);
-            border-top-color: #333333;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: var(--accent);
             border-radius: 50%;
             width: 3rem;
             height: 3rem;
             animation: spin 1s linear infinite;
         }
+        
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        
         /* Custom class for 16:9 aspect ratio */
         .aspect-16-9 {
             position: relative;
             padding-top: 56.25%; /* 9 / 16 * 100 */
         }
+        
         .aspect-16-9 img {
             position: absolute;
             top: 0;
@@ -63,43 +133,75 @@
             height: 100%;
             object-fit: cover;
         }
+        
+        /* Glowing text effect */
+        .glow-text {
+            text-shadow: 0 0 10px var(--accent3), 0 0 20px var(--accent3);
+        }
+        
+        /* Scan line effect for cards */
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent3), transparent);
+            animation: scan 4s linear infinite;
+        }
+        
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
     </style>
 </head>
-<body class="bg-white text-stone-950 min-h-screen flex flex-col items-center p-4 md:p-8">
+<body class="min-h-screen flex flex-col items-center p-4 md:p-8">
 
     <!-- Header -->
-    <header class="w-full text-center py-8 relative">
-        <button onclick="window.history.back()" class="absolute top-4 left-4 md:top-8 md:left-8 flex items-center p-2 rounded-lg text-sm font-medium download-button focus:outline-none focus:ring-2 focus:ring-black">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 mr-1">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-            </svg>
-            Back
-        </button>
-        <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-2 text-black">Mission A+ Resources</h1>
-        <p class="text-lg md:text-xl text-gray-700">Find the resources you need.</p>
+    <header class="w-full py-8 relative">
+        <!-- Flex container for responsive header layout -->
+        <div class="flex flex-col items-start mb-4 md:flex-row md:items-center md:justify-center md:text-center md:mb-0 w-full">
+            <button onclick="window.history.back()" class="flex items-center p-2 rounded-lg text-sm font-medium download-button focus:outline-none md:absolute md:top-8 md:left-8">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 mr-1">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+                Back
+            </button>
+            <div class="w-full text-center">
+                <h1 class="orbitron text-4xl md:text-5xl font-bold tracking-tight mb-2 glow-text">Mission A+ Resources</h1>
+                <p class="text-lg md:text-xl text-a0b3d0">Find the resources you need.</p>
+            </div>
+        </div>
     </header>
 
     <!-- Main Content Container with Fluid Width -->
     <main class="w-full container mx-auto px-4 md:px-8">
         
         <!-- Filter Section - Refined for better UX -->
-        <div id="filterContainer" class="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 p-4 bg-gray-100 rounded-lg shadow-inner">
-            <div class="w-full md:w-1/3">
-                <label for="mainFilter" class="block text-sm font-medium text-gray-700 mb-1">Select Category</label>
-                <select id="mainFilter" class="w-full p-3 rounded-lg filter-dropdown focus:outline-none focus:ring-2 focus:ring-gray-700">
+        <div id="filterContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8 p-4 bg-muted rounded-lg shadow-inner border border-muted-2">
+            <div class="w-full">
+                <label for="mainFilter" class="block text-sm font-medium text-a0b3d0 mb-1">Select Category</label>
+                <select id="mainFilter" class="w-full p-3 rounded-lg filter-dropdown focus:outline-none">
                     <option value="all">All Materials</option>
                 </select>
             </div>
-            <div class="w-full md:w-1/3">
-                <label for="subFilter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Type</label>
-                <select id="subFilter" class="w-full p-3 rounded-lg filter-dropdown focus:outline-none focus:ring-2 focus:ring-gray-700" disabled>
+            <div class="w-full">
+                <label for="subFilter" class="block text-sm font-medium text-a0b3d0 mb-1">Filter by Type</label>
+                <select id="subFilter" class="w-full p-3 rounded-lg filter-dropdown focus:outline-none" disabled>
                     <option value="all">All</option>
                 </select>
             </div>
-            <div class="w-full md:w-1/3">
-                <label for="nameFilter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Name</label>
-                <select id="nameFilter" class="w-full p-3 rounded-lg filter-dropdown focus:outline-none focus:ring-2 focus:ring-gray-700" disabled>
+            <div class="w-full">
+                <label for="nameFilter" class="block text-sm font-medium text-a0b3d0 mb-1">Filter by Name</label>
+                <select id="nameFilter" class="w-full p-3 rounded-lg filter-dropdown focus:outline-none" disabled>
                     <option value="all">All Names</option>
+                </select>
+            </div>
+            <div class="w-full">
+                <label for="TeacherFilter" class="block text-sm font-medium text-a0b3d0 mb-1">Filter by Teacher</label>
+                <select id="TeacherFilter" class="w-full p-3 rounded-lg filter-dropdown focus:outline-none" disabled>
+                    <option value="all">All Teachers</option>
                 </select>
             </div>
         </div>
@@ -113,11 +215,268 @@
 
     <!-- Footer -->
     <footer class="w-full text-center py-4 mt-8">
-        <p class="text-xs text-gray-500">
+        <p class="text-xs text-a0b3d0">
             &copy; 2024 Obscura Vault
         </p>
     </footer>
 
-     <script src="resource.js"></script>
+     <script>
+        
+        let materialsData = [];
+        const API_KEY = 'AIzaSyDzdiDMtiY250DS-lDuZeIZOocw9oqMlhM'; // Replace with your API key
+        const SHEET_ID = '1hDMMDfNEt6b1Y1yjbr9UbGWb2i0q0MwDlP0lkmLmW08'; // Replace with your Google Sheet ID
+        const RANGE = 'Sheet1!A:F'; // Updated to fetch 6 columns
+
+        const mainFilter = document.getElementById('mainFilter');
+        const subFilter = document.getElementById('subFilter');
+        const nameFilter = document.getElementById('nameFilter');
+        const TeacherFilter = document.getElementById('TeacherFilter'); // New filter
+        const materialsContainer = document.getElementById('materialsContainer');
+
+        // Helper function to get YouTube thumbnail from URL
+        function getYouTubeThumbnail(url) {
+            let videoId = null;
+            const defaultVideoId = 'oozJFcPwSl8'; // Default YouTube video ID
+
+            try {
+                const urlString = url ? url.trim() : '';
+                const urlObj = new URL(urlString);
+
+                if (urlObj.hostname.includes('youtube.com')) {
+                    if (urlObj.pathname === '/watch') {
+                        videoId = urlObj.searchParams.get('v');
+                    } else if (urlObj.pathname.startsWith('/embed/') || urlObj.pathname.startsWith('/live/') || urlObj.pathname.startsWith('/shorts/')) {
+                        videoId = urlObj.pathname.split('/').pop();
+                    }
+                } else if (urlObj.hostname === 'youtu.be') {
+                    videoId = urlObj.pathname.substring(1);
+                }
+            } catch (error) {
+                console.warn(`Could not parse YouTube URL: ${url}`);
+            }
+            
+            // If no video ID was found, use the default one.
+            if (!videoId) {
+                videoId = defaultVideoId;
+            }
+
+            return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+        }
+
+        async function fetchMaterialsFromSheet() {
+            materialsContainer.innerHTML = '<div class="flex justify-center items-center h-48"><div class="loading"></div></div>';
+            try {
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (!data.values || data.values.length === 0) {
+                    materialsContainer.innerHTML = '<p class="text-center text-a0b3d0">No data found in the spreadsheet.</p>';
+                    return;
+                }
+
+                // Assuming the first row is the header
+                const [header, ...rows] = data.values;
+                materialsData = rows.map(row => {
+                    const youtubeLink = row[4];
+                    return {
+                        type: row[0],
+                        subtype: row[1],
+                        name: row[2],
+                        downloadLink: row[3],
+                        thumbnailUrl: getYouTubeThumbnail(youtubeLink),
+                        Teacher: row[5] // New Teacher data
+                    };
+                });
+
+                initializeFilters();
+                updateDisplay();
+
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                materialsContainer.innerHTML = '<p class="text-center text-red-400">Failed to load data. Please check your API key and Sheet ID.</p>';
+            }
+        }
+
+        function initializeFilters() {
+            const types = [...new Set(materialsData.map(item => item.type))];
+            mainFilter.innerHTML = '<option value="all">All Materials</option>';
+            types.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                mainFilter.appendChild(option);
+            });
+            
+            subFilter.disabled = true;
+            nameFilter.disabled = true;
+            TeacherFilter.disabled = true;
+            subFilter.value = 'all';
+            nameFilter.value = 'all';
+            TeacherFilter.value = 'all';
+        }
+        
+        function populateSubFilter(filteredData) {
+            const subtypes = [...new Set(filteredData.map(item => item.subtype))].sort();
+            subFilter.innerHTML = '<option value="all">All</option>';
+            subtypes.forEach(subtype => {
+                const option = document.createElement('option');
+                option.value = subtype;
+                option.textContent = subtype;
+                subFilter.appendChild(option);
+            });
+        }
+        
+        function populateNameFilter(filteredData) {
+            const names = [...new Set(filteredData.map(item => item.name))].sort();
+            nameFilter.innerHTML = '<option value="all">All Names</option>';
+            names.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                nameFilter.appendChild(option);
+            });
+        }
+
+        function populateTeacherFilter(filteredData) {
+            const Teachers = [...new Set(filteredData.map(item => item.Teacher))].sort();
+            TeacherFilter.innerHTML = '<option value="all">All Teachers</option>';
+            Teachers.forEach(Teacher => {
+                const option = document.createElement('option');
+                option.value = Teacher;
+                option.textContent = Teacher;
+                TeacherFilter.appendChild(option);
+            });
+        }
+        
+        function updateDisplay() {
+            const selectedType = mainFilter.value;
+            const selectedSubtype = subFilter.value;
+            const selectedName = nameFilter.value;
+            const selectedTeacher = TeacherFilter.value;
+
+            let filteredData = materialsData;
+            
+            // Apply main category filter
+            if (selectedType !== 'all') {
+                filteredData = filteredData.filter(item => item.type === selectedType);
+            }
+
+            // Apply subtype filter
+            if (selectedSubtype !== 'all') {
+                filteredData = filteredData.filter(item => item.subtype === selectedSubtype);
+            }
+
+            // Apply name filter
+            if (selectedName !== 'all') {
+                filteredData = filteredData.filter(item => item.name === selectedName);
+            }
+
+            // Apply Teacher filter
+            if (selectedTeacher !== 'all') {
+                filteredData = filteredData.filter(item => item.Teacher === selectedTeacher);
+            }
+
+            displayMaterials(filteredData);
+        }
+
+        function displayMaterials(data) {
+            materialsContainer.innerHTML = ''; // Clear previous content
+            
+            if (data.length === 0) {
+                materialsContainer.innerHTML = '<p class="text-center text-a0b3d0">No materials found.</p>';
+                return;
+            }
+
+            const cardView = document.createElement('div');
+            cardView.id = 'cardView';
+            // Grid layout for responsiveness
+            cardView.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full';
+
+            data.forEach(material => {
+                const card = `
+                    <div class="card p-4 rounded-lg flex flex-col justify-between relative">
+                        <div class="scan-line"></div>
+                        <div>
+                            <div class="aspect-16-9 rounded-lg mb-4 overflow-hidden">
+                                <img src="${material.thumbnailUrl}" alt="${material.name}" class="w-full h-full object-cover rounded-lg">
+                            </div>
+                            <h3 class="text-lg font-semibold mb-1">${material.name} | ${material.subtype}</h3>
+                            <p class="text-a0b3d0 text-sm">Category: ${material.type}</p>
+                            <p class="text-a0b3d0 text-sm">Teacher: ${material.Teacher}</p>
+                        </div>
+                        <a href="${material.downloadLink}" target="_blank" rel="noopener noreferrer" class="mt-4 w-full text-center py-2 px-4 rounded-lg text-sm font-medium download-button">Download</a>
+                    </div>
+                `;
+                cardView.innerHTML += card;
+            });
+
+            materialsContainer.appendChild(cardView);
+        }
+
+        mainFilter.addEventListener('change', (e) => {
+            const selectedType = e.target.value;
+            const filteredByMain = selectedType === 'all' ? materialsData : materialsData.filter(item => item.type === selectedType);
+            
+            populateSubFilter(filteredByMain);
+            populateNameFilter(filteredByMain);
+            populateTeacherFilter(filteredByMain);
+            
+            subFilter.disabled = (filteredByMain.length === 0);
+            nameFilter.disabled = (filteredByMain.length === 0);
+            TeacherFilter.disabled = (filteredByMain.length === 0);
+            
+            updateDisplay();
+        });
+
+        subFilter.addEventListener('change', (e) => {
+            const selectedType = mainFilter.value;
+            const selectedSubtype = e.target.value;
+            
+            let filteredBySubtype = materialsData;
+            if (selectedType !== 'all') {
+                filteredBySubtype = filteredBySubtype.filter(item => item.type === selectedType);
+            }
+            if (selectedSubtype !== 'all') {
+                filteredBySubtype = filteredBySubtype.filter(item => item.subtype === selectedSubtype);
+            }
+
+            populateNameFilter(filteredBySubtype);
+            populateTeacherFilter(filteredBySubtype);
+            
+            nameFilter.disabled = (filteredBySubtype.length === 0);
+            TeacherFilter.disabled = (filteredBySubtype.length === 0);
+
+            updateDisplay();
+        });
+        
+        nameFilter.addEventListener('change', (e) => {
+            const selectedType = mainFilter.value;
+            const selectedSubtype = subFilter.value;
+            const selectedName = e.target.value;
+            
+            let filteredByName = materialsData;
+            if (selectedType !== 'all') {
+                filteredByName = filteredByName.filter(item => item.type === selectedType);
+            }
+            if (selectedSubtype !== 'all') {
+                filteredByName = filteredByName.filter(item => item.subtype === selectedSubtype);
+            }
+            if (selectedName !== 'all') {
+                filteredByName = filteredByName.filter(item => item.name === selectedName);
+            }
+            
+            populateTeacherFilter(filteredByName);
+            TeacherFilter.disabled = (filteredByName.length === 0);
+
+            updateDisplay();
+        });
+
+        TeacherFilter.addEventListener('change', updateDisplay);
+        
+        // Fetch materials on page load
+        document.addEventListener('DOMContentLoaded', fetchMaterialsFromSheet);
+
+     </script>
 </body>
 </html>
