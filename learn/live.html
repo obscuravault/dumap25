@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Session | EduStream</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        .teams-container {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            background: #f1f5f9;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .teams-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .pulse {
+            animation: pulse-animation 2s infinite;
+        }
+
+        @keyframes pulse-animation {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+    <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 sticky top-0 z-50">
+        <div class="flex items-center gap-4">
+            <a href="course.html" class="text-slate-500 hover:text-slate-800 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+            </a>
+            <span class="text-xl font-bold text-emerald-600">EduStream <span class="ml-2 px-2 py-0.5 bg-red-100 text-red-600 text-xs rounded-full pulse">LIVE</span></span>
+        </div>
+        <div class="flex items-center text-slate-600 gap-2">
+            <span id="user-phone" class="font-mono bg-slate-100 px-2 py-1 rounded text-sm tracking-tighter">Authenticating...</span>
+        </div>
+    </header>
+
+    <div id="app-content" class="flex flex-col lg:flex-row h-[calc(100vh-64px)] hidden">
+        <!-- Info Sidebar -->
+        <aside class="w-full lg:w-80 bg-white border-r border-slate-200 flex flex-col h-full overflow-y-auto">
+            <div class="p-6 space-y-6">
+                <div>
+                    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Current Session</h2>
+                    <h1 id="live-title" class="text-xl font-bold text-slate-900">Loading Session...</h1>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex items-start gap-3">
+                        <div class="p-2 bg-emerald-50 rounded-lg text-emerald-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500">Scheduled Date</p>
+                            <p id="live-date" class="text-sm font-medium text-slate-800">--</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500">Start Time</p>
+                            <p id="live-time" class="text-sm font-medium text-slate-800">--</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-6 border-t border-slate-100">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Instructions</h3>
+                    <ul class="text-xs text-slate-600 space-y-2">
+                        <li class="flex gap-2">• Keep your microphone muted on entry.</li>
+                        <li class="flex gap-2">• Use the chat for questions.</li>
+                        <li class="flex gap-2">• Sessions are recorded for later viewing.</li>
+                    </ul>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Live Area -->
+        <main class="flex-grow p-6 lg:p-10 overflow-y-auto">
+            <div class="max-w-6xl mx-auto">
+                <div id="teams-mount" class="teams-container">
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
+                        <svg class="w-12 h-12 mb-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        <p>Connecting to Microsoft Teams...</p>
+                    </div>
+                </div>
+                
+                <div class="mt-6 p-4 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-2 bg-emerald-500 rounded-full pulse"></div>
+                        <span class="text-sm text-emerald-800 font-medium">You are currently connected to the live classroom.</span>
+                    </div>
+                    <button onclick="window.location.reload()" class="text-xs font-bold text-emerald-700 hover:underline">Refresh Connection</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const CONFIG = {
+            SUPABASE_URL: 'https://pkqpvnrtxtqlngwtfnhy.supabase.co', 
+            SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrcXB2bnJ0eHRxbG5nd3Rmbmh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzNzQxNTUsImV4cCI6MjA4NTk1MDE1NX0.wrYYlIzt1slOXkbUAqAaSI1bA9xJ2N8QhNHSRJIkZR0',
+            GOOGLE_SHEETS_API_KEY: 'AIzaSyDzdiDMtiY250DS-lDuZeIZOocw9oqMlhM', 
+            SPREADSHEET_ID: '1_ALK5Bkz-D0LIia1fLc_NmA12Zm8KRylJNYjnfhPezM', 
+            // Assuming Live data is in a sheet named 'Live'
+            RANGE: 'Live!A:E' 
+        };
+
+        let supabaseClient;
+
+        async function init() {
+            try {
+                supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                
+                if (!session) {
+                    window.location.assign('login.html');
+                    return;
+                }
+
+                const phone = session.user.user_metadata?.phone_number || session.user.phone || "Live Student";
+                document.getElementById('user-phone').textContent = phone;
+                document.getElementById('app-content').classList.remove('hidden');
+
+                await loadLiveData();
+            } catch (err) {
+                console.error("Initialization error:", err);
+                window.location.assign('login.html');
+            }
+        }
+
+        async function loadLiveData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const courseId = urlParams.get('id'); // Filter by course if provided
+            
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/${CONFIG.RANGE}?key=${CONFIG.GOOGLE_SHEETS_API_KEY}`;
+            
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                if (!data.values || data.values.length < 2) {
+                    showError("No live sessions scheduled at the moment.");
+                    return;
+                }
+
+                // Get the latest row or filter by courseId
+                let sessionData = data.values[data.values.length - 1]; // Default to last entry
+                if (courseId) {
+                    const filtered = data.values.slice(1).filter(row => row[0] == courseId);
+                    if (filtered.length > 0) sessionData = filtered[filtered.length - 1];
+                }
+
+                // Mapping: A: CourseID, B: Title, C: Date, D: Time, E: Teams Link
+                const [id, title, date, time, teamsLink] = sessionData;
+
+                document.getElementById('live-title').textContent = title || "Live Classroom";
+                document.getElementById('live-date').textContent = date || "Today";
+                document.getElementById('live-time').textContent = time || "Now";
+
+                if (teamsLink) {
+                    embedTeams(teamsLink);
+                } else {
+                    showError("Meeting link is missing in the records.");
+                }
+
+            } catch (err) {
+                console.error("Sheets error:", err);
+                showError("Could not load live session data.");
+            }
+        }
+
+        function embedTeams(link) {
+            // Convert standard Teams link to an embeddable format if necessary
+            // Note: Teams usually requires a specific 'embed' format or works within iframes 
+            // if configured correctly by the admin.
+            let embedUrl = link;
+            
+            // Basic cleanup for Teams URL
+            if (!embedUrl.includes('https://')) embedUrl = 'https://' + embedUrl;
+
+            const container = document.getElementById('teams-mount');
+            container.innerHTML = `
+                <iframe 
+                    src="${embedUrl}" 
+                    allow="camera; microphone; fullscreen; display-capture; autoplay" 
+                    allowfullscreen>
+                </iframe>
+            `;
+        }
+
+        function showError(msg) {
+            document.getElementById('teams-mount').innerHTML = `
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 p-6 text-center">
+                    <svg class="w-12 h-12 mb-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <p class="font-medium text-slate-700">${msg}</p>
+                    <p class="text-sm mt-2">Please check back later or contact support.</p>
+                </div>
+            `;
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
