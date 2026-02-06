@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learn | EduStream</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        .curriculum-scroll::-webkit-scrollbar { width: 5px; }
+        .curriculum-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: #000; }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 0.75rem; }
+        .watermark {
+            position: absolute;
+            top: 15%;
+            left: 5%;
+            pointer-events: none;
+            opacity: 0.35;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+    <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 sticky top-0 z-50">
+        <div class="flex items-center gap-4">
+            <a href="course.html" class="text-slate-500 hover:text-slate-800 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+            </a>
+            <span class="text-xl font-bold text-emerald-600">EduStream</span>
+        </div>
+        <div class="flex items-center text-slate-600 gap-2">
+            <span id="user-phone" class="font-mono bg-slate-100 px-2 py-1 rounded text-sm tracking-tighter">Authenticating...</span>
+        </div>
+    </header>
+
+    <div id="app-content" class="flex flex-col lg:flex-row h-[calc(100vh-64px)] hidden">
+        <aside class="w-full lg:w-96 bg-white border-r border-slate-200 flex flex-col h-full">
+            <div class="p-4 border-b border-slate-100"><h2 class="font-bold text-slate-800 uppercase text-xs tracking-widest">Curriculum</h2></div>
+            <div id="curriculum-list" class="flex-grow curriculum-scroll overflow-y-auto p-4 space-y-4"></div>
+        </aside>
+
+        <main class="flex-grow overflow-y-auto p-6 lg:p-10">
+            <div class="max-w-5xl mx-auto space-y-8">
+                <div class="video-container shadow-2xl rounded-xl">
+                    <div id="video-placeholder" class="absolute inset-0 flex items-center justify-center text-slate-400 font-medium">Select a lesson to begin</div>
+                    <div id="watermark-overlay" class="watermark hidden"></div>
+                    <iframe id="main-player" src="" frameborder="0" allow="autoplay; fullscreen" class="hidden"></iframe>
+                </div>
+                <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                    <h1 id="lesson-title" class="text-2xl font-bold text-slate-900 mb-4">Course Content</h1>
+                    <div id="attachment-area" class="border-t border-slate-100 pt-6"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Error Overlay -->
+    <div id="setup-error" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white p-6 rounded-xl max-w-md w-full shadow-2xl">
+            <h2 class="text-xl font-bold text-red-600 mb-2">Configuration Error</h2>
+            <p id="error-desc" class="text-slate-600 mb-4 text-sm"></p>
+            <p class="text-xs text-slate-400 bg-slate-50 p-3 rounded">Please verify your API settings and spreadsheet access permissions.</p>
+        </div>
+    </div>
+
+    <script>
+        const CONFIG = {
+            SUPABASE_URL: 'https://pkqpvnrtxtqlngwtfnhy.supabase.co', 
+            SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrcXB2bnJ0eHRxbG5nd3Rmbmh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzNzQxNTUsImV4cCI6MjA4NTk1MDE1NX0.wrYYlIzt1slOXkbUAqAaSI1bA9xJ2N8QhNHSRJIkZR0',
+            GOOGLE_SHEETS_API_KEY: 'AIzaSyDzdiDMtiY250DS-lDuZeIZOocw9oqMlhM', 
+            SPREADSHEET_ID: '1_ALK5Bkz-D0LIia1fLc_NmA12Zm8KRylJNYjnfhPezM', 
+            RANGE: 'Sheet3!A:F' 
+        };
+
+        let supabaseClient;
+
+        function validateConfig() {
+            const isPlaceholder = (val) => !val || val === '' || (typeof val === 'string' && (val.includes('your-') || val.includes('YOUR_')));
+            if (isPlaceholder(CONFIG.SUPABASE_URL) || isPlaceholder(CONFIG.SUPABASE_ANON_KEY)) {
+                const errorBox = document.getElementById('setup-error');
+                const errorDesc = document.getElementById('error-desc');
+                errorDesc.textContent = "Supabase credentials appear to be missing or incorrect.";
+                errorBox.classList.remove('hidden');
+                return false;
+            }
+            return true;
+        }
+
+        async function init() {
+            if (!validateConfig()) return;
+
+            try {
+                supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+
+                const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+                
+                if (sessionError || !session) {
+                    window.location.assign('login.html');
+                    return;
+                }
+
+                const phone = session.user.user_metadata?.phone_number || session.user.phone || "Protected Content";
+                document.getElementById('user-phone').textContent = phone;
+                document.getElementById('watermark-overlay').textContent = phone;
+                document.getElementById('app-content').classList.remove('hidden');
+
+                await loadSheetData();
+            } catch (err) {
+                console.error("Initialization error:", err);
+                if (err.message && (err.message.includes('supabaseUrl') || err.message.includes('supabaseKey'))) {
+                    const errorBox = document.getElementById('setup-error');
+                    const errorDesc = document.getElementById('error-desc');
+                    errorDesc.textContent = "Supabase Initialization Failed: " + err.message;
+                    errorBox.classList.remove('hidden');
+                } else {
+                    window.location.assign('login.html');
+                }
+            }
+        }
+
+        async function loadSheetData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const courseId = urlParams.get('id');
+            if (!courseId) { 
+                window.location.assign('course.html'); 
+                return; 
+            }
+
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/${CONFIG.RANGE}?key=${CONFIG.GOOGLE_SHEETS_API_KEY}`;
+            
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                if (data.error) throw new Error(data.error.message);
+                if (!data.values) throw new Error("No data found in the spreadsheet.");
+
+                const filtered = data.values.slice(1).filter(row => row[0] == courseId);
+                
+                if (filtered.length === 0) {
+                    document.getElementById('curriculum-list').innerHTML = `<p class="p-4 text-slate-400 text-sm">No lessons available for this course ID (${courseId}).</p>`;
+                    return;
+                }
+
+                renderCurriculum(filtered);
+            } catch (err) {
+                console.error("Sheets error:", err);
+                document.getElementById('curriculum-list').innerHTML = `<p class="p-4 text-red-400 text-xs">Error: ${err.message}</p>`;
+            }
+        }
+
+        function renderCurriculum(data) {
+            const container = document.getElementById('curriculum-list');
+            const sections = {};
+            data.forEach(row => {
+                const sName = row[1] || "Introduction";
+                if (!sections[sName]) sections[sName] = [];
+                sections[sName].push(row);
+            });
+
+            container.innerHTML = Object.entries(sections).map(([name, lessons], idx) => `
+                <div class="border border-slate-200 rounded-lg overflow-hidden">
+                    <button class="w-full p-4 bg-slate-50 font-bold text-slate-700 text-sm flex justify-between items-center" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                        <span>${name}</span>
+                        <span class="text-slate-400 text-lg">+</span>
+                    </button>
+                    <div class="flex flex-col divide-y divide-slate-100 hidden">
+                        ${lessons.map(l => `
+                            <button onclick="playVideo('${l[4]}', '${l[2]}', '${l[5]}')" class="text-left p-4 hover:bg-emerald-50 text-sm transition group">
+                                <span class="block text-[10px] text-emerald-600 font-bold uppercase mb-1">${l[3] || 'Part'}</span>
+                                <span class="text-slate-700 group-hover:text-emerald-900 font-medium">${l[2]}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.playVideo = (url, title, attach) => {
+            const player = document.getElementById('main-player');
+            const placeholder = document.getElementById('video-placeholder');
+            const watermark = document.getElementById('watermark-overlay');
+            
+            let vid = '';
+            try {
+                if (url && url.includes('v=')) vid = url.split('v=')[1].split('&')[0];
+                else if (url && url.includes('be/')) vid = url.split('be/')[1].split('?')[0];
+                else if (url && url.includes('embed/')) vid = url.split('embed/')[1].split('?')[0];
+            } catch (e) { console.error("URL Parsing error", e); }
+
+            if (vid) {
+                player.src = `https://www.youtube.com/embed/${vid}?autoplay=1&rel=0&modestbranding=1`;
+                player.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                watermark.classList.remove('hidden');
+            } else {
+                alert("Could not parse YouTube URL.");
+            }
+
+            document.getElementById('lesson-title').textContent = title;
+            document.getElementById('attachment-area').innerHTML = (attach && attach !== 'undefined' && attach !== '') ? 
+                `<div class="flex items-center gap-4">
+                    <span class="text-sm text-slate-500 font-medium">Resources:</span>
+                    <a href="${attach}" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Download Files
+                    </a>
+                </div>` : 
+                `<span class="text-slate-400 text-xs italic">No additional resources for this lesson.</span>`;
+        };
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
