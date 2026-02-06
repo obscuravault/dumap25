@@ -6,6 +6,8 @@
     <title>Learn | EduStream</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- YouTube IFrame API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
@@ -18,7 +20,8 @@
             height: 0;
             overflow: hidden;
             background: #000;
-            border-radius: 0.75rem;
+            border-top-left-radius: 0.75rem;
+            border-top-right-radius: 0.75rem;
         }
         
         .video-wrapper iframe {
@@ -55,6 +58,13 @@
             z-index: 30;
             user-select: none;
         }
+
+        /* Custom Controls Styling */
+        .custom-controls {
+            background: #1e293b;
+            border-bottom-left-radius: 0.75rem;
+            border-bottom-right-radius: 0.75rem;
+        }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen">
@@ -78,7 +88,7 @@
         </aside>
 
         <main class="flex-grow overflow-y-auto p-6 lg:p-10">
-            <div class="max-w-5xl mx-auto space-y-8">
+            <div class="max-w-5xl mx-auto space-y-0">
                 <!-- Enhanced Video Container with Protection Layer -->
                 <div class="video-wrapper shadow-2xl">
                     <div id="video-placeholder" class="absolute inset-0 z-10 flex items-center justify-center text-slate-400 font-medium bg-slate-900">
@@ -91,10 +101,32 @@
                     <!-- The Protection Layer -->
                     <div id="protection-layer" class="video-protection-layer hidden" oncontextmenu="return false;"></div>
                     
-                    <iframe id="main-player" src="" frameborder="0" allow="autoplay; fullscreen" class="hidden"></iframe>
+                    <div id="player-container">
+                        <div id="main-player" class="hidden"></div>
+                    </div>
                 </div>
 
-                <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                <!-- Custom Player Controls -->
+                <div id="custom-player-controls" class="custom-controls p-3 flex items-center justify-between text-white hidden">
+                    <div class="flex items-center gap-4">
+                        <button id="play-pause-btn" class="p-2 hover:bg-slate-700 rounded-full transition">
+                            <svg id="play-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            <svg id="pause-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                        </button>
+                        <div class="flex items-center gap-2">
+                            <button id="mute-btn" class="p-2 hover:bg-slate-700 rounded-full transition">
+                                <svg id="volume-high-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                                <svg id="volume-mute-icon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+                            </button>
+                            <input type="range" id="volume-slider" min="0" max="100" value="100" class="w-20 h-1 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                        </div>
+                    </div>
+                    <div class="text-xs font-mono text-slate-400 px-4 select-none">
+                        EduStream Secure Player
+                    </div>
+                </div>
+
+                <div class="bg-white p-8 rounded-b-2xl border border-slate-200 shadow-sm !mt-8">
                     <h1 id="lesson-title" class="text-2xl font-bold text-slate-900 mb-4">Course Content</h1>
                     <div id="attachment-area" class="border-t border-slate-100 pt-6"></div>
                 </div>
@@ -121,6 +153,13 @@
         };
 
         let supabaseClient;
+        let ytPlayer;
+        let isPlayerReady = false;
+
+        // YouTube API ready callback
+        function onYouTubeIframeAPIReady() {
+            isPlayerReady = true;
+        }
 
         function validateConfig() {
             const isPlaceholder = (val) => !val || val === '' || (typeof val === 'string' && (val.includes('your-') || val.includes('YOUR_')));
@@ -152,9 +191,57 @@
                 document.getElementById('app-content').classList.remove('hidden');
 
                 await loadSheetData();
+                setupCustomControls();
             } catch (err) {
                 console.error("Initialization error:", err);
                 window.location.assign('login.html');
+            }
+        }
+
+        function setupCustomControls() {
+            const playPauseBtn = document.getElementById('play-pause-btn');
+            const muteBtn = document.getElementById('mute-btn');
+            const volSlider = document.getElementById('volume-slider');
+
+            playPauseBtn.onclick = () => {
+                if (!ytPlayer) return;
+                const state = ytPlayer.getPlayerState();
+                if (state === 1) { // playing
+                    ytPlayer.pauseVideo();
+                } else {
+                    ytPlayer.playVideo();
+                }
+            };
+
+            muteBtn.onclick = () => {
+                if (!ytPlayer) return;
+                if (ytPlayer.isMuted()) {
+                    ytPlayer.unMute();
+                } else {
+                    ytPlayer.mute();
+                }
+                updateVolumeUI();
+            };
+
+            volSlider.oninput = (e) => {
+                if (!ytPlayer) return;
+                ytPlayer.setVolume(e.target.value);
+                if (e.target.value > 0 && ytPlayer.isMuted()) {
+                    ytPlayer.unMute();
+                }
+                updateVolumeUI();
+            };
+        }
+
+        function updateVolumeUI() {
+            const volHigh = document.getElementById('volume-high-icon');
+            const volMute = document.getElementById('volume-mute-icon');
+            if (ytPlayer.isMuted() || ytPlayer.getVolume() === 0) {
+                volHigh.classList.add('hidden');
+                volMute.classList.remove('hidden');
+            } else {
+                volHigh.classList.remove('hidden');
+                volMute.classList.add('hidden');
             }
         }
 
@@ -217,10 +304,10 @@
         }
 
         window.playVideo = (url, title, attach) => {
-            const player = document.getElementById('main-player');
             const placeholder = document.getElementById('video-placeholder');
             const watermark = document.getElementById('watermark-overlay');
             const protectionLayer = document.getElementById('protection-layer');
+            const controlBar = document.getElementById('custom-player-controls');
             
             let vid = '';
             try {
@@ -230,16 +317,46 @@
             } catch (e) { console.error("URL Parsing error", e); }
 
             if (vid) {
-                // rel=0 prevents related videos from other channels
-                // disablekb=1 prevents keyboard shortcuts
-                // modestbranding=1 removes the YouTube logo from the control bar
-                // controls=0 would remove controls entirely, but we'll keep them 
-                // and block interaction via the protection layer div.
-                player.src = `https://www.youtube.com/embed/${vid}?autoplay=1&rel=0&modestbranding=1&disablekb=1&showinfo=0`;
-                player.classList.remove('hidden');
+                if (ytPlayer) {
+                    ytPlayer.loadVideoById(vid);
+                } else {
+                    ytPlayer = new YT.Player('main-player', {
+                        height: '100%',
+                        width: '100%',
+                        videoId: vid,
+                        playerVars: {
+                            'autoplay': 1,
+                            'controls': 0,
+                            'rel': 0,
+                            'modestbranding': 1,
+                            'disablekb': 1,
+                            'iv_load_policy': 3
+                        },
+                        events: {
+                            'onReady': (event) => {
+                                event.target.playVideo();
+                                updateVolumeUI();
+                            },
+                            'onStateChange': (event) => {
+                                const playIcon = document.getElementById('play-icon');
+                                const pauseIcon = document.getElementById('pause-icon');
+                                if (event.data === YT.PlayerState.PLAYING) {
+                                    playIcon.classList.add('hidden');
+                                    pauseIcon.classList.remove('hidden');
+                                } else {
+                                    playIcon.classList.remove('hidden');
+                                    pauseIcon.classList.add('hidden');
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                document.getElementById('main-player').classList.remove('hidden');
                 placeholder.classList.add('hidden');
                 watermark.classList.remove('hidden');
                 protectionLayer.classList.remove('hidden');
+                controlBar.classList.remove('hidden');
             } else {
                 alert("Could not parse YouTube URL.");
             }
