@@ -47,7 +47,7 @@
         <!-- Alert Message Area -->
         <div id="alert-box" class="hidden mb-6 p-4 rounded-lg text-sm"></div>
 
-        <!-- Auth Forms -->
+        <!-- Forms -->
         <form id="auth-form" class="space-y-4">
             <!-- Registration Specific Fields -->
             <div id="reg-fields" class="hidden space-y-4">
@@ -102,6 +102,7 @@
         const toggleText = document.getElementById('toggle-text');
         const alertBox = document.getElementById('alert-box');
         const configWarning = document.getElementById('config-warning');
+        const phoneInput = document.getElementById('phone');
 
         let isLogin = true;
 
@@ -113,6 +114,10 @@
         toggleBtn.addEventListener('click', () => {
             isLogin = !isLogin;
             regFields.classList.toggle('hidden', isLogin);
+            
+            // Set/Unset required attribute dynamically
+            phoneInput.required = !isLogin;
+            
             formTitle.textContent = isLogin ? 'Welcome Back' : 'Create Account';
             formSubtitle.textContent = isLogin ? 'Please enter your details to sign in' : 'Join us today by filling in the details below';
             submitBtn.querySelector('span').textContent = isLogin ? 'Sign In' : 'Sign Up';
@@ -128,7 +133,13 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const fullName = document.getElementById('full_name').value;
-            const phone = document.getElementById('phone').value;
+            const phone = phoneInput.value;
+
+            // Extra validation for phone if in register mode
+            if (!isLogin && !phone) {
+                showAlert('Phone number is required for registration.', 'error');
+                return;
+            }
 
             setLoading(true);
             hideAlert();
