@@ -3,171 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | EduStream</title>
+    <title>All Courses | Learning Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
-        .course-card:hover .course-img { transform: scale(1.05); }
+        .course-card:hover { transform: translateY(-5px); transition: all 0.3s ease; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen">
 
-    <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 sticky top-0 z-50">
-        <span class="text-xl font-bold text-emerald-600">EduStream</span>
-        <div id="user-info" class="flex items-center gap-4">
-            <span id="user-phone" class="text-sm text-slate-600 font-medium"></span>
-            <button onclick="handleLogout()" class="text-xs font-bold text-red-500 hover:text-red-700">Logout</button>
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex-shrink-0 flex items-center">
+                    <span class="text-xl font-bold text-emerald-600">EduStream</span>
+                </div>
+                <div id="user-contact-info" class="flex items-center space-x-2 text-slate-600 font-medium">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    <span id="header-phone" class="text-sm md:text-base">Checking Auth...</span>
+                </div>
+            </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto p-6 lg:p-10">
-        <div class="mb-10">
-            <h1 class="text-3xl font-bold text-slate-900">Welcome back!</h1>
-            <p class="text-slate-500">Pick up where you left off or join a live session.</p>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div id="loading-state" class="text-center py-20">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-emerald-500 border-t-transparent"></div>
+            <p class="mt-4 text-slate-500 font-medium">Loading courses...</p>
         </div>
-
-        <!-- Live Sessions Section -->
-        <div id="live-indicator-section" class="mb-10 hidden">
-            <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                <span class="w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
-                Active Live Sessions
-            </h2>
-            <div id="live-buttons-container" class="flex flex-wrap gap-4">
-                <!-- Live buttons will be injected here -->
+        <div id="course-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 hidden"></div>
+        <div id="error-state" class="hidden text-center py-20">
+            <div class="bg-red-50 text-red-700 p-6 rounded-xl inline-block max-w-lg">
+                <p id="error-message">Access Denied. Redirecting to login...</p>
             </div>
-        </div>
-
-        <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Your Courses</h2>
-        <div id="course-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- Course cards loaded from Sheet1 -->
         </div>
     </main>
 
     <script>
         const CONFIG = {
-            SUPABASE_URL: 'https://pkqpvnrtxtqlngwtfnhy.supabase.co', 
+            SUPABASE_URL: 'https://pkqpvnrtxtqlngwtfnhy.supabase.co',
             SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrcXB2bnJ0eHRxbG5nd3Rmbmh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzNzQxNTUsImV4cCI6MjA4NTk1MDE1NX0.wrYYlIzt1slOXkbUAqAaSI1bA9xJ2N8QhNHSRJIkZR0',
-            GOOGLE_SHEETS_API_KEY: 'AIzaSyDzdiDMtiY250DS-lDuZeIZOocw9oqMlhM', 
-            SPREADSHEET_ID: '1_ALK5Bkz-D0LIia1fLc_NmA12Zm8KRylJNYjnfhPezM'
+            GOOGLE_SHEETS_API_KEY: 'AIzaSyDzdiDMtiY250DS-lDuZeIZOocw9oqMlhM',
+            // Cleaned ID: extracted from the URL string to prevent API errors
+            SPREADSHEET_ID: '1_ALK5Bkz-D0LIia1fLc_NmA12Zm8KRylJNYjnfhPezM',
+            RANGE: 'Sheet2!A:E'
         };
 
-        let supabaseClient;
+        const supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 
-        async function init() {
+        async function checkAuthAndFetch() {
             try {
-                supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+                // 1. Check Supabase Session
                 const { data: { session }, error } = await supabaseClient.auth.getSession();
                 
                 if (error || !session) {
-                    console.warn("No active session found, redirecting to login.");
                     window.location.assign('login.html');
                     return;
                 }
 
-                document.getElementById('user-phone').textContent = session.user.user_metadata?.phone_number || session.user.phone || "User";
-                
-                await loadCourses();
-                await checkLiveSessions();
+                // 2. Show User Phone
+                const user = session.user;
+                document.getElementById('header-phone').textContent = user.user_metadata?.phone_number || user.phone || "Active Member";
+
+                // 3. Fetch Courses
+                await fetchCourses();
             } catch (err) {
-                console.error("Initialization error:", err);
-                // Fallback to absolute path or check if login.html is reachable
+                console.error("Auth check failed:", err);
                 window.location.assign('login.html');
             }
         }
 
-        async function loadCourses() {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${""}`; 
-            // The above is a placeholder for Gemini API if needed, but here we use Google Sheets API
-            const sheetsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/Sheet1!A:E?key=${CONFIG.GOOGLE_SHEETS_API_KEY}`;
-            
+        async function fetchCourses() {
             try {
-                const res = await fetch(sheetsUrl);
-                const data = await res.json();
-                const container = document.getElementById('course-grid');
-                
-                if (data.values) {
-                    container.innerHTML = data.values.slice(1).map(row => `
-                        <div class="course-card bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col transition-all hover:shadow-md">
-                            <div class="h-48 overflow-hidden bg-slate-100">
-                                <img src="${row[3] || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800'}" alt="Course" class="course-img w-full h-full object-cover transition-transform duration-500">
-                            </div>
-                            <div class="p-6 flex-grow flex flex-col">
-                                <div class="flex justify-between items-start mb-2">
-                                    <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider bg-emerald-50 px-2 py-1 rounded">${row[4] || 'Course'}</span>
-                                    <div id="live-tag-${row[0]}" class="hidden flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 px-2 py-1 rounded animate-pulse">
-                                        LIVE NOW
-                                    </div>
-                                </div>
-                                <h3 class="text-lg font-bold text-slate-900 mb-2">${row[1]}</h3>
-                                <p class="text-slate-500 text-sm mb-6 line-clamp-2">${row[2] || 'Start your learning journey today.'}</p>
-                                <div class="mt-auto flex flex-col gap-2">
-                                    <a href="singlecourse.html?id=${row[0]}" class="block w-full text-center py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition">View Content</a>
-                                    <a id="live-btn-${row[0]}" href="live.html?id=${row[0]}" class="hidden block w-full text-center py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition shadow-lg shadow-red-200">Attend Live Class</a>
-                                </div>
-                            </div>
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/${CONFIG.RANGE}?key=${CONFIG.GOOGLE_SHEETS_API_KEY}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.error) throw new Error(data.error.message);
+                if (!data.values) throw new Error("No data found in spreadsheet.");
+
+                const rows = data.values;
+                const headers = rows[0].map(h => h.toLowerCase().trim());
+                const courses = rows.slice(1).map(row => {
+                    const obj = {};
+                    headers.forEach((header, index) => obj[header] = row[index]);
+                    return obj;
+                });
+
+                const grid = document.getElementById('course-grid');
+                grid.innerHTML = courses.map(course => `
+                    <div class="course-card bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                        <img src="${course.imageurl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&q=80'}" class="w-full h-48 object-cover">
+                        <div class="p-6 flex flex-col flex-grow">
+                            <h3 class="text-xl font-bold text-slate-800 mb-2">${course.title || 'Untitled Course'}</h3>
+                            <p class="text-slate-600 text-sm mb-6 flex-grow line-clamp-2">${course.description || 'No description available.'}</p>
+                            <a href="singlecourse.html?id=${course.id}" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-center font-semibold py-3 rounded-xl transition">Enroll Now</a>
                         </div>
-                    `).join('');
-                }
+                    </div>
+                `).join('');
+
+                document.getElementById('loading-state').classList.add('hidden');
+                grid.classList.remove('hidden');
             } catch (err) {
-                console.error("Courses load error:", err);
+                console.error("Fetch courses failed:", err);
+                document.getElementById('loading-state').classList.add('hidden');
+                const errorState = document.getElementById('error-state');
+                const errorMsg = document.getElementById('error-message');
+                errorMsg.textContent = "Failed to load courses: " + err.message;
+                errorState.classList.remove('hidden');
             }
         }
 
-        async function checkLiveSessions() {
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/Live!A:E?key=${CONFIG.GOOGLE_SHEETS_API_KEY}`;
-            try {
-                const res = await fetch(url);
-                const data = await res.json();
-                
-                if (data.values && data.values.length > 1) {
-                    const liveIndicatorSection = document.getElementById('live-indicator-section');
-                    const liveButtonsContainer = document.getElementById('live-buttons-container');
-                    
-                    data.values.slice(1).forEach(row => {
-                        const courseId = row[0];
-                        const title = row[1];
-                        
-                        const cardBtn = document.getElementById(`live-btn-${courseId}`);
-                        const cardTag = document.getElementById(`live-tag-${courseId}`);
-                        
-                        if (cardBtn) {
-                            cardBtn.classList.remove('hidden');
-                            cardTag.classList.remove('hidden');
-                            
-                            liveIndicatorSection.classList.remove('hidden');
-                            const indicator = document.createElement('a');
-                            indicator.href = `live.html?id=${courseId}`;
-                            indicator.className = "bg-white border border-red-200 p-4 rounded-xl shadow-sm hover:shadow-md transition flex items-center gap-4 group";
-                            indicator.innerHTML = `
-                                <div class="w-10 h-10 bg-red-100 text-red-600 rounded-lg flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold text-red-500 uppercase tracking-tighter">Live Session</p>
-                                    <p class="text-sm font-bold text-slate-800">${title}</p>
-                                </div>
-                            `;
-                            liveButtonsContainer.appendChild(indicator);
-                        }
-                    });
-                }
-            } catch (err) {
-                console.warn("Live check failed or no Live tab exists yet.", err);
-            }
-        }
-
-        async function handleLogout() {
-            try {
-                await supabaseClient.auth.signOut();
-                window.location.assign('login.html');
-            } catch (err) {
-                window.location.assign('login.html');
-            }
-        }
-
-        window.addEventListener('DOMContentLoaded', init);
+        window.addEventListener('DOMContentLoaded', checkAuthAndFetch);
     </script>
 </body>
 </html>
